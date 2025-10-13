@@ -1,0 +1,45 @@
+<core:FragmentDefinition
+    xmlns:core="sap.ui.core"
+    xmlns:m="sap.m"
+    xmlns="sap.suite.ui.commons"
+    xmlns:macros="sap.fe.macros"
+>
+    <ProcessFlow
+        id="_IDGenProcessFlow1"
+        scrollable="false"
+        core:require="{handler: 'gpitrackerlr/ext/fragment/Payment_event_flow'}"
+        nodePress="handler.onNodePress"
+        nodes="{process_flow_nodes}"
+        lanes="{process_flow_lanes}"
+        wheelZoomable="true"      
+    >
+        <nodes>
+            <ProcessFlowNode
+                id="_IDGenProcessFlowNode"
+                laneId="{laneId}"
+                nodeId="{id}"
+                children="{ path:'children', 
+            targetType: 'any', 
+            mode: 'OneTime', 
+            formatter: '.extension.gpitrackerlr.ext.controller.Format.formatMyField' }"
+                title="{title}"
+                titleAbbreviation="{title}"
+                state="{state}"
+                stateText="{stateText}"
+                texts="{ path:'texts', 
+         targetType:'any', 
+         mode: 'OneTime', 
+         formatter: '.extension.gpitrackerlr.ext.controller.Format.formatMyField' }"
+            />
+        </nodes>
+        <lanes>
+            <ProcessFlowLaneHeader
+                id="_IDGenProcessFlowLaneHeader"
+                laneId="{laneId}"
+                iconSrc="{iconSrc}"
+                position="{position}"
+                text="{text}"
+            />
+        </lanes>
+    </ProcessFlow>
+</core:FragmentDefinition>

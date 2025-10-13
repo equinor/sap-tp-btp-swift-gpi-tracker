@@ -1,0 +1,3179 @@
+{
+  "openapi" : "3.0.2",
+  "info" : {
+    "title" : "gpi for Corporates",
+    "description" : "About SWIFT gpi for Corporates (g4C)\n\nFaster, traceable and transparent cross-border payments.\n\nWith SWIFT gpi for Corporates (g4C), gpi flows are now directly integrated into corporate treasury applications (TMS/ERP), allowing multi-bank corporates to initiate and track their outgoing payments (Pay and trace) and to be notified about incoming payments (Inbound tracking) in a bank-agnostic way.\n\ngpi for Corporates delivers the following benefits:\n\n  * Multi-bank unique end-to-end reference generated at payment initiation\n  * Full visibility on outgoing and incoming cross-border transactions (time, routing, number of intermediaries, fees)\n  * Certainty and visibility on receivables with structured payment advice information, allowing for accelerated reconciliation and optimized liquidity management\n  * Improved supplier relationship with certainty of payment, proof of execution and proactive issue-resolution\n  * SWIFT gpi for Corporates is based on a common rulebook and is ISO 20022 compliant.\n  \nAbout the g4C API\n\nWith this API, g4C payment tracking is now real-time allowing corporates to track their own payments and g4C banks to track their customer’s payments. As such, the g4C API can be used in a tracker-to-corporate or a tracker-to-bank mode (under the control of the account servicer of the corporate). \nThe API connectivity between Tracker and bank and Tracker and corporate happens via Swift (SDK/Microgateway). Being subscribed to gpi for Corporates is a pre-requisite to the use of these APIs over the Swift network. Please contact SWIFT for more details.\n\n**Release note for changes between 6.0.2 and the new 7.0.0 version**|\n\nNote that the availability of the API does not mean that the features are immediately available for consumption. Features will be released within a 2-year timeframe.\n\n  *inclusion of rich elements to support richness: end to end identification, purpose code, related remittance information, structured remittance information, ultimate debtor and ultimate creditor. These rich fields, in case used in the underlying pacs.008, will be fed into the g4C notification.\n  \n  *merge of outbound (pay and trace) and inbound POST endpoint into one single endpoint since formats are almost equal. Inclusion of service level element in search parameters to allow for selection of outbound (G003) or inbound (G007).\n  \n  *addition of new optional search parameter (apart from service level) in GET request: end to end identification \n  \n  *inclusion of new element debit confirmation URL address to support the proof of debit functionality replacing copy of MT 103\n  \n  *tracking of payment initiation legs (MT 101/pain.001): Corporate to bank flows on SCORE FINplus InterAct will be tracked as part of the g4C outbound service. In this context a new status RCVD (received) is introduced to allow reporting the event where payment initiation (from corporate) is received by the debtor agent (his bank). In the relay scenario, also the leg between the forwarding agent and the debtor agent will receive a RCVD status once received by the debtor agent.\n   To support the tracking of payment initiation legs, following changes have been introduced: |\n   \n   -new status RCVD (mentioned before)\n   \n   -inclusion of equivalent amount element while instructed amount has been made optional (pain.001 allows choice between these two amount elements)\n   \n   -inclusion of requested execution date element while interbank settlement date has been made optional (pain.001 only allows for a requested execution date)\n   \n   -from element in payment event is redefined with AnyBIC (previously BICFI) since from will include corporate BIC in case payment initiation is tracked.\n   \n**Release note for changes between 7.0.0 and the new 7.0.1 version**|       \n   \nChange is related to the AccountIdentification47Choice in terms of the location of the OneOf \n\n**Release note for changes between 7.0.1 and the new 7.0.2 version**|       \n   \nComponent Paymenttransaction125 became Paymenttransaction150\n\nPaymentStatusReason12Code became PaymentStatusReason13Code because now that pay and trace and inbound tracking APIs are merged we need all values in list: G001, G005 and G006.\n\nPaymentEvent14 became PaymentEvent16 introducing the ‘interbank settlement amount’ at payment event level as optional additional element. Examples also updated to reflect this new element.\n\n**Release note for changes between 7.0.2 and the new 7.0.3 version**|       \n   \nChange is related to the AccountIdentification47Choice which was replaced by AccountIdentification58Choice that applies the correct format of the OneOf. Also component ExternalPaymentStatus. Component Paymenttransaction150 became Paymenttransaction150  \n",
+    "contact" : {
+      "name" : "Standards & Developer Hub",
+      "url" : "https://developer.swift.com",
+      "email" : "developer-support@swift.com"
+    },
+    "license" : {
+      "name" : "API Restricted License",
+      "url" : "https://www.swift.com/file/56776/download?token=8w8DC4eF"
+    },
+    "version" : "7.0.3"
+  },
+  "servers" : [ {
+    "url" : "https://api-test.swiftnet.sipn.swift.com/swift-apitracker-g4c-pilot/v7",
+    "description" : "Test environment"
+  }, {
+    "url" : "https://api.swiftnet.sipn.swift.com/swift-apitracker-g4c/v7",
+    "description" : "Production environment"
+  }, {
+    "url" : "https://sandbox.swift.com/swift-apitracker-g4c/v7",
+    "description" : "Sandbox environment"
+  } ],
+  "security" : [ {
+    "oauthBearerToken" : [ ]
+  } ],
+  "tags" : [ {
+    "name" : "Corporate Transaction Tracking",
+    "description" : "Allows paying corporates and their servicing bank(s) to track outgoing and incoming payments in real-time."
+  } ],
+  "paths" : {
+    "/payments/corporate" : {
+      "post" : {
+        "tags" : [ "Corporate payments" ],
+        "summary" : "Corporate payments search.",
+        "description" : "This API provides the status and the related transaction-level information regarding a specific outbound or inbound payment. Corporate customers must pass the BIC of their servicing bank.\n\nThis API allows for multiple combinations of search criteria. For example the UETR search should only supply the UETR. See the request examples for an illustration of the different varieties of searches that are supported. For each illustrative search there is a corresponding response example. Note that a search without a request body is invalid.      \n",
+        "operationId" : "corporatePayment",
+        "parameters" : [ {
+          "name" : "x-bic",
+          "in" : "header",
+          "description" : "The BIC of your account holding bank – must be provided by corporate customers, does not have to be provided by banks.",
+          "required" : false,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "pattern" : "^[a-z]{6,6}[a-z2-9][a-np-z0-9]$",
+            "type" : "string",
+            "example" : "cclabeb0"
+          }
+        }, {
+          "name" : "client",
+          "in" : "header",
+          "description" : "The BIC of the bank or corporate customer calling the service. ",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "pattern" : "^[a-z]{6,6}[a-z2-9][a-np-z0-9]$",
+            "type" : "string",
+            "example" : "cclabeb0"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CorporateTransactionTrackingRequest1"
+              },
+              "examples" : {
+                "inbound_corporate_payment_uetr_search" : {
+                  "$ref" : "#/components/examples/inbound_corporate_payment_uetr_search"
+                },
+                "outbound_corporate_payment_uetr_search" : {
+                  "$ref" : "#/components/examples/outbound_corporate_payment_uetr_search"
+                },
+                "inbound_corporate_payment_time_window_search" : {
+                  "$ref" : "#/components/examples/inbound_corporate_payment_time_window_search"
+                },
+                "outbound_corporate_payment_time_window_search" : {
+                  "$ref" : "#/components/examples/outbound_corporate_payment_time_window_search"
+                },
+                "inbound_corporate_payment_time_window_continue_search" : {
+                  "$ref" : "#/components/examples/inbound_corporate_payment_time_window_continue_search"
+                },
+                "outbound_corporate_payment_time_window_continue_search" : {
+                  "$ref" : "#/components/examples/outbound_corporate_payment_time_window_continue_search"
+                },
+                "inbound_corporate_payment_time_window_creditor_search" : {
+                  "$ref" : "#/components/examples/inbound_corporate_payment_time_window_creditor_search"
+                },
+                "outbound_corporate_payment_time_window_debtor_search" : {
+                  "$ref" : "#/components/examples/outbound_corporate_payment_time_window_debtor_search"
+                },
+                "inbound_corporate_payment_time_window_creditor_account_search" : {
+                  "$ref" : "#/components/examples/inbound_corporate_payment_time_window_creditor_account_search"
+                },
+                "outbound_corporate_payment_time_window_debtor_account_search" : {
+                  "$ref" : "#/components/examples/outbound_corporate_payment_time_window_debtor_account_search"
+                },
+                "inbound_corporate_payment_time_window_event_statusACSP_search" : {
+                  "$ref" : "#/components/examples/inbound_corporate_payment_time_window_event_statusACSP_search"
+                },
+                "outbound_corporate_payment_time_window_event_statusRCVD_search" : {
+                  "$ref" : "#/components/examples/outbound_corporate_payment_time_window_event_statusRCVD_search"
+                },
+                "outbound_corporate_payment_time_window_event_statusACSC_proof_of_debit_search" : {
+                  "$ref" : "#/components/examples/outbound_corporate_payment_time_window_event_statusACSC_proof_of_debit_search"
+                },
+                "inbound_corporate_payment_end_to_end_identification_search" : {
+                  "$ref" : "#/components/examples/inbound_corporate_payment_end_to_end_identification_search"
+                },
+                "outbound_corporate_payment_end_to_end_identification_search" : {
+                  "$ref" : "#/components/examples/outbound_corporate_payment_end_to_end_identification_search"
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "results matching search criteria",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CorporateTransactionTrackingResponse1"
+                },
+                "examples" : {
+                  "inbound_corporate_payment_uetr_search_result" : {
+                    "$ref" : "#/components/examples/inbound_corporate_payment_uetr_search_result"
+                  },
+                  "outbound_corporate_payment_uetr_search_result" : {
+                    "$ref" : "#/components/examples/outbound_corporate_payment_uetr_search_result"
+                  },
+                  "inbound_corporate_payment_time_window_search_result" : {
+                    "$ref" : "#/components/examples/inbound_corporate_payment_time_window_search_result"
+                  },
+                  "outbound_corporate_payment_time_window_search_result" : {
+                    "$ref" : "#/components/examples/outbound_corporate_payment_time_window_search_result"
+                  },
+                  "inbound_corporate_payment_time_window_creditor_account_search_result" : {
+                    "$ref" : "#/components/examples/inbound_corporate_payment_time_window_creditor_account_search_result"
+                  },
+                  "outbound_corporate_payment_time_window_debtor_account_search_result" : {
+                    "$ref" : "#/components/examples/outbound_corporate_payment_time_window_debtor_account_search_result"
+                  },
+                  "inbound_corporate_payment_time_window_event_statusACSP_search_result" : {
+                    "$ref" : "#/components/examples/inbound_corporate_payment_time_window_event_statusACSP_search_result"
+                  },
+                  "outbound_corporate_payment_time_window_event_statusRCVD_search_result" : {
+                    "$ref" : "#/components/examples/outbound_corporate_payment_time_window_event_statusRCVD_search_result"
+                  },
+                  "inbound_corporate_payment_end_to_end_identification_search_result" : {
+                    "$ref" : "#/components/examples/inbound_corporate_payment_end_to_end_identification_search_result"
+                  },
+                  "outbound_corporate_payment_end_to_end_identification_search_result" : {
+                    "$ref" : "#/components/examples/outbound_corporate_payment_end_to_end_identification_search_result"
+                  },
+                  "outbound_corporate_payment_time_window_event_statusACSC_proof_of_debit_search_result" : {
+                    "$ref" : "#/components/examples/outbound_corporate_payment_time_window_event_statusACSC_proof_of_debit_search_result"
+                  }
+                }
+              }
+            }
+          },
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "description" : "Bad Request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Not Found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "413" : {
+            "description" : "Payload Too Large",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "429" : {
+            "description" : "Too Many Requests",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "Service Unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "504" : {
+            "description" : "Gateway Timeout",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          },
+          "default" : {
+            "description" : "Internal Server Error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorMessage"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "ErrorMessage" : {
+        "required" : [ "code", "severity", "text" ],
+        "type" : "object",
+        "additionalProperties" : false,
+        "properties" : {
+          "severity" : {
+            "type" : "string",
+            "enum" : [ "Fatal", "Transient", "Logic" ]
+          },
+          "code" : {
+            "type" : "string"
+          },
+          "text" : {
+            "type" : "string"
+          },
+          "user_message" : {
+            "type" : "string"
+          },
+          "more_info" : {
+            "type" : "string",
+            "format" : "uri"
+          }
+        }
+      },
+      "AddressType3Choice" : {
+        "type" : "object",
+        "description" : "Choice of formats for the type of address.",
+        "additionalProperties" : true,
+        "oneOf" : [ {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "code" : {
+              "$ref" : "#/components/schemas/AddressType2Code"
+            }
+          },
+          "required" : [ "code" ]
+        }, {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "proprietary" : {
+              "$ref" : "#/components/schemas/GenericIdentification30"
+            }
+          },
+          "required" : [ "proprietary" ]
+        } ]
+      },
+      "AccountIdentification58Choice" : {
+        "type" : "object",
+        "description" : "Specifies the unique identification of an account as assigned by the account servicer.",
+        "additionalProperties" : true,
+        "oneOf" : [ {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "iban" : {
+              "$ref" : "#/components/schemas/IBAN2007Identifier"
+            }
+          },
+          "required" : [ "iban" ]
+        }, {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "identification" : {
+              "$ref" : "#/components/schemas/Max34Text"
+            }
+          },
+          "required" : [ "identification" ]
+        } ]
+      },
+      "ActiveCurrencyAndAmount" : {
+        "type" : "object",
+        "description" : "A number of monetary units specified in an active currency where the unit of currency is explicit and compliant with ISO 4217.",
+        "additionalProperties" : false,
+        "properties" : {
+          "currency" : {
+            "$ref" : "#/components/schemas/ActiveCurrencyCode"
+          },
+          "amount" : {
+            "type" : "string",
+            "maxLength" : 19,
+            "pattern" : "^0*(([0-9]{0,13}\\.[0-9]{1,5})|([0-9]{0,14}\\.[0-9]{1,4})|([0-9]{0,15}\\.[0-9]{1,3})|([0-9]{0,16}\\.[0-9]{1,2})|([0-9]{0,17}\\.[0-9]{1,1})|([0-9]{0,18}\\.)|0*|([0-9]{0,18}))$"
+          }
+        },
+        "required" : [ "currency", "amount" ]
+      },
+      "ActiveCurrencyCode" : {
+        "type" : "string",
+        "pattern" : "^[A-Z]{3,3}$",
+        "description" : "A code allocated to a currency by a Maintenance Agency under an international identification scheme as described in the latest edition of the international standard ISO 4217 \"Codes for the representation of currencies and funds\"."
+      },
+      "ActiveOrHistoricCurrencyAndAmount" : {
+        "type" : "object",
+        "description" : "A number of monetary units specified in an active or a historic currency where the unit of currency is explicit and compliant with ISO 4217.",
+        "additionalProperties" : false,
+        "properties" : {
+          "currency" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyCode"
+          },
+          "amount" : {
+            "type" : "string",
+            "maxLength" : 19,
+            "pattern" : "^0*(([0-9]{0,13}\\.[0-9]{1,5})|([0-9]{0,14}\\.[0-9]{1,4})|([0-9]{0,15}\\.[0-9]{1,3})|([0-9]{0,16}\\.[0-9]{1,2})|([0-9]{0,17}\\.[0-9]{1,1})|([0-9]{0,18}\\.)|0*|([0-9]{0,18}))$"
+          }
+        },
+        "required" : [ "currency", "amount" ]
+      },
+      "ActiveOrHistoricCurrencyCode" : {
+        "type" : "string",
+        "pattern" : "^[A-Z]{3,3}$",
+        "description" : "A code allocated to a currency by a Maintenance Agency under an international identification scheme, as described in the latest edition of the international standard ISO 4217 \"Codes for the representation of currencies and funds\"."
+      },
+      "AddressType2Code" : {
+        "type" : "string",
+        "description" : "Specifies the type of address.\n*`ADDR`-Address is the complete postal address.\n*`PBOX`-Address is a postal office (PO) box.\n*`HOME`-Address is the home address.\n*`BIZZ`-Address is the business address.\n*`MLTO`-Address is the address to which mail is sent.\n*`DLVY`-Address is the address to which delivery is to take place.",
+        "enum" : [ "ADDR", "PBOX", "HOME", "BIZZ", "MLTO", "DLVY" ]
+      },
+      "AnyBICDec2014Identifier" : {
+        "type" : "string",
+        "description" : "Code allocated to a financial or non-financial institution by the ISO 9362 Registration Authority, as described in ISO 9362: 2014 - \"Banking - Banking telecommunication messages - Business identifier code (BIC)\".",
+        "pattern" : "^[A-Z0-9]{4,4}[A-Z]{2,2}[A-Z0-9]{2,2}([A-Z0-9]{3,3}){0,1}$"
+      },
+      "BICFIDec2014Identifier" : {
+        "type" : "string",
+        "description" : "Code allocated to a financial institution by the ISO 9362 Registration Authority as described in ISO 9362: 2014 - \"Banking - Banking telecommunication messages - Business identifier code (BIC)\".",
+        "pattern" : "^[A-Z0-9]{4,4}[A-Z]{2,2}[A-Z0-9]{2,2}([A-Z0-9]{3,3}){0,1}$"
+      },
+      "BaseOneRate" : {
+        "type" : "string",
+        "description" : "Rate expressed as a decimal, for example, 0.7 is 7/10 and 70%.",
+        "maxLength" : 12
+      },
+      "CashAccount204" : {
+        "type" : "object",
+        "description" : "Provides the details to identify an account.",
+        "additionalProperties" : false,
+        "properties" : {
+          "identification" : {
+            "$ref" : "#/components/schemas/AccountIdentification58Choice"
+          }
+        },
+        "required" : [ "identification" ]
+      },
+      "ChargeBearerType3Code" : {
+        "type" : "string",
+        "description" : "Specifies which party/parties will bear the charges associated with the processing of the payment transaction.\n*`SHAR`-In a credit transfer context, means that transaction charges on the sender side are to be borne by the debtor, transaction charges on the receiver side are to be borne by the creditor. In a direct debit context, means that transaction charges on the sender side are to be borne by the creditor, transaction charges on the receiver side are to be borne by the debtor.\n*`DEBT`-All transaction charges are to be borne by the debtor.\n*`CRED`-All transaction charges are to be borne by the creditor.",
+        "enum" : [ "SHAR", "DEBT", "CRED" ]
+      },
+      "Contact4" : {
+        "type" : "object",
+        "description" : "Specifies the details of the contact person.",
+        "additionalProperties" : false,
+        "properties" : {
+          "name_prefix" : {
+            "$ref" : "#/components/schemas/NamePrefix2Code"
+          },
+          "name" : {
+            "$ref" : "#/components/schemas/Max140Text"
+          },
+          "phone_number" : {
+            "$ref" : "#/components/schemas/PhoneNumber"
+          },
+          "mobile_number" : {
+            "$ref" : "#/components/schemas/PhoneNumber"
+          },
+          "fax_number" : {
+            "$ref" : "#/components/schemas/PhoneNumber"
+          },
+          "email_address" : {
+            "$ref" : "#/components/schemas/Max2048Text"
+          },
+          "email_purpose" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "job_title" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "responsibility" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "department" : {
+            "$ref" : "#/components/schemas/Max70Text"
+          },
+          "other" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/OtherContact1"
+            }
+          },
+          "preferred_method" : {
+            "$ref" : "#/components/schemas/PreferredContactMethod1Code"
+          }
+        }
+      },
+      "CorporateTransactionTrackingRequest1" : {
+        "type" : "object",
+        "description" : "Includes resource for Corporate Tracking Transaction Request.",
+        "additionalProperties" : false,
+        "properties" : {
+          "uetr" : {
+            "$ref" : "#/components/schemas/UUIDv4Identifier"
+          },
+          "start_date_time" : {
+            "$ref" : "#/components/schemas/ISONormalisedDateTime"
+          },
+          "end_date_time" : {
+            "$ref" : "#/components/schemas/ISONormalisedDateTime"
+          },
+          "service_level" : {
+            "$ref" : "#/components/schemas/ServiceLevel5Code"
+          },
+          "event_filter" : {
+            "$ref" : "#/components/schemas/TrueFalseIndicator"
+          },
+          "status_filter" : {
+            "$ref" : "#/components/schemas/TransactionIndividualStatus10Code"
+          },
+          "end_to_end_identification" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "debtor" : {
+            "$ref" : "#/components/schemas/AnyBICDec2014Identifier"
+          },
+          "debtor_account" : {
+            "$ref" : "#/components/schemas/Max34Text"
+          },
+          "creditor" : {
+            "$ref" : "#/components/schemas/AnyBICDec2014Identifier"
+          },
+          "creditor_account" : {
+            "$ref" : "#/components/schemas/Max34Text"
+          },
+          "maximum_number" : {
+            "$ref" : "#/components/schemas/Max3Number"
+          },
+          "next" : {
+            "$ref" : "#/components/schemas/Max450Text"
+          }
+        },
+        "required" : [ "service_level" ]
+      },
+      "CorporateTransactionTrackingResponse1" : {
+        "type" : "object",
+        "description" : "Includes the resource for the Corporate Transaction Tracking Response",
+        "additionalProperties" : false,
+        "properties" : {
+          "payment_transaction" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PaymentTransaction163"
+            }
+          },
+          "next" : {
+            "$ref" : "#/components/schemas/Max450Text"
+          }
+        },
+        "required" : [ "payment_transaction" ]
+      },
+      "CountryCode" : {
+        "type" : "string",
+        "pattern" : "^[A-Z]{2,2}$",
+        "description" : "Code to identify a country, a dependency, or another area of particular geopolitical interest, on the basis of country names obtained from the United Nations (ISO 3166, Alpha-2 code)."
+      },
+      "CreditDebitCode" : {
+        "type" : "string",
+        "description" : "Specifies if an operation is an increase or a decrease.\n*`CRDT`-Operation is an increase.\n*`DBIT`-Operation is a decrease.",
+        "enum" : [ "CRDT", "DBIT" ]
+      },
+      "CreditorReferenceInformation2" : {
+        "type" : "object",
+        "description" : "Reference information provided by the creditor to allow the identification of the underlying documents.",
+        "additionalProperties" : false,
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/CreditorReferenceType2"
+          },
+          "reference" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          }
+        }
+      },
+      "CreditorReferenceType2" : {
+        "type" : "object",
+        "description" : "Specifies the type of creditor reference.",
+        "additionalProperties" : false,
+        "properties" : {
+          "code_or_proprietary" : {
+            "$ref" : "#/components/schemas/CreditorReferenceType1Choice"
+          },
+          "issuer" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          }
+        },
+        "required" : [ "code_or_proprietary" ]
+      },
+      "CreditorReferenceType1Choice" : {
+        "type" : "object",
+        "description" : "Specifies the type of document referred by the creditor.",
+        "additionalProperties" : true,
+        "oneOf" : [ {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "code" : {
+              "$ref" : "#/components/schemas/DocumentType3Code"
+            }
+          },
+          "required" : [ "code" ]
+        }, {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "proprietary" : {
+              "$ref" : "#/components/schemas/Max35Text"
+            }
+          },
+          "required" : [ "proprietary" ]
+        } ]
+      },
+      "CurrencyExchange12" : {
+        "type" : "object",
+        "description" : "Contains the set of elements used to provide details of the currency exchange.",
+        "additionalProperties" : false,
+        "properties" : {
+          "source_currency" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyCode"
+          },
+          "target_currency" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyCode"
+          },
+          "exchange_rate" : {
+            "$ref" : "#/components/schemas/BaseOneRate"
+          }
+        },
+        "required" : [ "source_currency", "target_currency", "exchange_rate" ]
+      },
+      "DateAndDateTime2Choice" : {
+        "type" : "object",
+        "description" : "Choice between a date or a date and time format.",
+        "additionalProperties" : true,
+        "oneOf" : [ {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "date" : {
+              "$ref" : "#/components/schemas/ISODate"
+            }
+          },
+          "required" : [ "date" ]
+        }, {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "date_time" : {
+              "$ref" : "#/components/schemas/ISODateTime"
+            }
+          },
+          "required" : [ "date_time" ]
+        } ]
+      },
+      "DateAndPlaceOfBirth1" : {
+        "type" : "object",
+        "description" : "Date and place of birth of a person.",
+        "additionalProperties" : false,
+        "properties" : {
+          "birth_date" : {
+            "$ref" : "#/components/schemas/ISODate"
+          },
+          "province_of_birth" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "city_of_birth" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "country_of_birth" : {
+            "$ref" : "#/components/schemas/CountryCode"
+          }
+        },
+        "required" : [ "birth_date", "city_of_birth", "country_of_birth" ]
+      },
+      "DatePeriod2" : {
+        "type" : "object",
+        "description" : "Range of time defined by a start date and an end date.",
+        "additionalProperties" : false,
+        "properties" : {
+          "from_date" : {
+            "$ref" : "#/components/schemas/ISODate"
+          },
+          "to_date" : {
+            "$ref" : "#/components/schemas/ISODate"
+          }
+        },
+        "required" : [ "from_date", "to_date" ]
+      },
+      "DiscountAmountAndType1" : {
+        "type" : "object",
+        "description" : "Specifies the amount with a specific type.",
+        "additionalProperties" : false,
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/DiscountAmountType1Choice"
+          },
+          "amount" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyAndAmount"
+          }
+        },
+        "required" : [ "amount" ]
+      },
+      "DiscountAmountType1Choice" : {
+        "type" : "object",
+        "description" : "Specifies the amount type.",
+        "additionalProperties" : true,
+        "oneOf" : [ {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "code" : {
+              "$ref" : "#/components/schemas/ExternalDiscountAmountType1Code"
+            }
+          },
+          "required" : [ "code" ]
+        }, {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "proprietary" : {
+              "$ref" : "#/components/schemas/Max35Text"
+            }
+          },
+          "required" : [ "proprietary" ]
+        } ]
+      },
+      "DocumentAdjustment1" : {
+        "type" : "object",
+        "description" : "Set of elements used to provide information on the amount and reason of the document adjustment.",
+        "additionalProperties" : false,
+        "properties" : {
+          "amount" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyAndAmount"
+          },
+          "credit_debit_indicator" : {
+            "$ref" : "#/components/schemas/CreditDebitCode"
+          },
+          "reason" : {
+            "$ref" : "#/components/schemas/Max4Text"
+          },
+          "additional_information" : {
+            "$ref" : "#/components/schemas/Max140Text"
+          }
+        },
+        "required" : [ "amount" ]
+      },
+      "DocumentLineIdentification1" : {
+        "type" : "object",
+        "description" : "Identifies the documents referred to in the remittance information.",
+        "additionalProperties" : false,
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/DocumentLineType1"
+          },
+          "number" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "related_date" : {
+            "$ref" : "#/components/schemas/ISODate"
+          }
+        }
+      },
+      "DocumentLineInformation1" : {
+        "type" : "object",
+        "description" : "Provides document line information.\n",
+        "additionalProperties" : false,
+        "properties" : {
+          "identification" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DocumentLineIdentification1"
+            }
+          },
+          "description" : {
+            "$ref" : "#/components/schemas/Max2048Text"
+          },
+          "amount" : {
+            "$ref" : "#/components/schemas/RemittanceAmount3"
+          }
+        },
+        "required" : [ "identification" ]
+      },
+      "DocumentLineType1" : {
+        "type" : "object",
+        "description" : "Specifies the type of the document line identification.",
+        "additionalProperties" : false,
+        "properties" : {
+          "code_or_proprietary" : {
+            "$ref" : "#/components/schemas/DocumentLineType1Choice"
+          },
+          "issuer" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          }
+        },
+        "required" : [ "code_or_proprietary" ]
+      },
+      "DocumentLineType1Choice" : {
+        "type" : "object",
+        "description" : "Specifies the type of the document line identification.",
+        "additionalProperties" : true,
+        "oneOf" : [ {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "code" : {
+              "$ref" : "#/components/schemas/ExternalDocumentLineType1Code"
+            }
+          },
+          "required" : [ "code" ]
+        }, {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "proprietary" : {
+              "$ref" : "#/components/schemas/Max35Text"
+            }
+          },
+          "required" : [ "proprietary" ]
+        } ]
+      },
+      "DocumentType3Code" : {
+        "type" : "string",
+        "description" : "Specifies a type of financial or commercial document.\n*`RADM`-Document is a remittance advice sent separately from the current transaction.\n*`RPIN`-Document is a linked payment instruction to which the current payment instruction is related, for example, in a cover scenario.\n*`FXDR`-Document is a pre-agreed or pre-arranged foreign exchange transaction to which the payment transaction refers.\n*`DISP`-Document is a dispatch advice.\n*`PUOR`-Document is a purchase order.\n*`SCOR`-Document is a structured communication reference provided by the creditor to identify the referred transaction.",
+        "enum" : [ "RADM", "RPIN", "FXDR", "DISP", "PUOR", "SCOR" ]
+      },
+      "DocumentType6Code" : {
+        "type" : "string",
+        "description" : "Specifies a type of financial or commercial document.\n*`MSIN`-Document is an invoice claiming payment for the supply of metered services, for example gas or electricity supplied to a fixed meter.\n*`CNFA`-Document is a credit note for the final amount settled for a commercial transaction.\n*`DNFA`-Document is a debit note for the final amount settled for a commercial transaction.\n*`CINV`-Document is an invoice.\n*`CREN`-Document is a credit note.\n*`DEBN`-Document is a debit note.\n*`HIRI`-Document is an invoice for the hiring of human resources or renting goods or equipment.\n*`SBIN`-Document is an invoice issued by the debtor.\n*`CMCN`-Document is an agreement between the parties, stipulating the terms and conditions of the delivery of goods or services.\n*`SOAC`-Document is a statement of the transactions posted to the debtor's account at the supplier.\n*`DISP`-Document is a dispatch advice.\n*`BOLD`-Document is a shipping notice.\n*`VCHR`-Document is an electronic payment document.\n*`AROI`-Document is a payment that applies to a specific source document.\n*`TSUT`-Document is a transaction identifier as assigned by the Trade Services Utility.\n*`PUOR`-Document is a purchase order.",
+        "enum" : [ "MSIN", "CNFA", "DNFA", "CINV", "CREN", "DEBN", "HIRI", "SBIN", "CMCN", "SOAC", "DISP", "BOLD", "VCHR", "AROI", "TSUT", "PUOR" ]
+      },
+      "EquivalentAmount2" : {
+        "type" : "object",
+        "description" : "Amount of money to be moved between the debtor and creditor, expressed in the currency of the debtor's account, and the currency in which the amount is to be moved.",
+        "additionalProperties" : false,
+        "properties" : {
+          "amount" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyAndAmount"
+          },
+          "currency_of_transfer" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyCode"
+          }
+        },
+        "required" : [ "amount", "currency_of_transfer" ]
+      },
+      "Exact4AlphaNumericText" : {
+        "type" : "string",
+        "description" : "Specifies an alphanumeric string with a length of 4 characters.",
+        "pattern" : "^[a-zA-Z0-9]{4}$"
+      },
+      "ExternalDiscountAmountType1Code" : {
+        "type" : "string",
+        "minLength" : 1,
+        "maxLength" : 4,
+        "description" : "Specifies the nature, or use, of the amount in the format of character string with a maximum length of 4 characters.\nThe list of valid codes is an external code list published separately.\nExternal code sets can be downloaded from www.iso20022.org. "
+      },
+      "ExternalDocumentLineType1Code" : {
+        "type" : "string",
+        "minLength" : 1,
+        "maxLength" : 4,
+        "description" : "Specifies the document line type as published in an external document type code list."
+      },
+      "ExternalGarnishmentType1Code" : {
+        "type" : "string",
+        "minLength" : 1,
+        "maxLength" : 4,
+        "description" : "Specifies the garnishment type as published in an external document type code list."
+      },
+      "TrackerPaymentStatusReason3Code" : {
+        "type" : "string",
+        "description" : "Provides reason for reject/return.\n*`AM06`-Below limit.\n*`RC01`-Bank identifier code specified in the message has an incorrect format (formerly IncorrectFormatForRoutingCode).\n*`AC06`-Account specified is blocked, prohibiting posting of transactions against it.\n*`AM07`-Amount specified in message has been blocked by regulatory authorities.\n*`AC04`-Account number specified has been closed on the bank of account's books.\n*`AC07`-Creditor account number closed.\n*`G004`-Credit to the creditor's account is pending as status Originator is waiting for funds provided via a cover.\n*`DUPL`-Payment is a duplicate of another payment.\n*`ERIN`-The Extended Remittance Information (ERI) option is not supported.\n*`FOCR`-Return following a cancellation request.\n*`FR01`-Returned as a result of fraud.\n*`BE01`-Identification of end customer is not consistent with associated account number. (formerly CreditorConsistency).\n*`AC01`-Account number is invalid or missing\n*`AGNT`-Agent in the payment workflow is incorrect.\n*`CURR`-Currency of the payment is incorrect.\n*`AM04`-Amount of funds available to cover specified message amount is insufficient.\n*`FF06`-Category Purpose code is missing or invalid.\n*`RC08`-Routing code not valid for local clearing.\n*`RC04`-Creditor bank identifier is invalid or missing.\n*`AC02`-Debtor account number invalid or missing\r\n\n*`AC13`-Debtor account type is missing or invalid.\n*`RR11`-Invalid or missing identification of a bank proprietary service.\n*`RC03`-Debtor bank identifier is invalid or missing\n*`RC11`-Intermediary Agent is invalid or missing.\n*`FF05`-Local Instrument code is missing or invalid.\n*`RR12`-Invalid or missing identification required within a particular country or payment type.\n*`FF03`-Payment Type Information is missing or invalid. Generic usage if cannot specify Service Level or Local Instrument code.\n*`FF07`-Purpose is missing or invalid.\n*`FF04`-Service Level code is missing or invalid.\n*`RR09`-Structured creditor reference invalid or missing.\n*`BE04`-Specification of creditor's address, which is required for payment, is missing/not correct (formerly IncorrectCreditorAddress).\n*`RR03`-Specification of the creditor's name and/or address needed for regulatory requirements is insufficient or missing.\n*`RR01`-Specification of the debtor’s account or unique identification needed for reasons of regulatory requirements is insufficient or missing\n*`BE07`-Specification of debtor's address, which is required for payment, is missing/not correct.\n*`RR02`-Specification of the debtor’s name and/or address needed for regulatory requirements is insufficient or missing.\r\n\n*`NOAS`-Failed to contact beneficiary.\n*`AM02`-Specific transaction/message amount is greater than allowed maximum.\n*`AM03`-Specific message amount is an non processable currency outside of existing agreement.\n*`NOCM`-Customer account is not compliant with regulatory requirements, for example FICA (in South Africa) or any other regulatory requirements which render an account inactive for certain processing.\n*`MS03`-Reason has not been specified by agent.\n*`MS02`-Reason has not been specified by end customer.\n*`RR05`-Regulatory or Central Bank Reporting information missing, incomplete or invalid.\n*`RR04`-Regulatory Reason \n*`RR07`-Remittance information structure does not comply with rules for payment type.\n*`RR08`-Remittance information truncated to comply with rules for payment type.\n*`CUST`-At request of creditor.\n*`RR06`-Tax information missing, incomplete or invalid.\n*`UPAY`-Payment is not justified.\n*`BE05`-Party who initiated the message is not recognised by the end customer.\n*`AM09`-Amount received is not the amount agreed or expected.\n*`RUTA`-Return following investigation request and no remediation possible.",
+        "enum" : [ "AM06", "RC01", "AC06", "AM07", "AC04", "AC07", "G004", "DUPL", "ERIN", "FOCR", "FR01", "BE01", "AC01", "AGNT", "CURR", "AM04", "FF06", "RC08", "RC04", "AC02", "AC13", "RR11", "RC03", "RC11", "FF05", "RR12", "FF03", "FF07", "FF04", "RR09", "BE04", "RR03", "RR01", "BE07", "RR02", "NOAS", "AM02", "AM03", "NOCM", "MS03", "MS02", "RR05", "RR04", "RR07", "RR08", "CUST", "RR06", "UPAY", "BE05", "AM09", "RUTA" ]
+      },
+      "ExternalOrganisationIdentification1Code" : {
+        "type" : "string",
+        "minLength" : 1,
+        "maxLength" : 4,
+        "description" : "Specifies the external organisation identification scheme name code in the format of character string with a maximum length of 4 characters.\nThe list of valid codes is an external code list published separately.\nExternal code sets can be downloaded from www.iso20022.org.      "
+      },
+      "ExternalPersonIdentification1Code" : {
+        "type" : "string",
+        "minLength" : 1,
+        "maxLength" : 4,
+        "description" : "Specifies the external person identification scheme name code in the format of character string with a maximum length of 4 characters.\nThe list of valid codes is an external code list published separately.\nExternal code sets can be downloaded from www.iso20022.org.      "
+      },
+      "ExternalTaxAmountType1Code" : {
+        "type" : "string",
+        "minLength" : 1,
+        "maxLength" : 4,
+        "description" : "Specifies the nature, or use, of the amount in the format of character string with a maximum length of 4 characters.\nThe list of valid codes is an external code list published separately.\nExternal code sets can be downloaded from www.iso20022.org.      "
+      },
+      "Garnishment3" : {
+        "type" : "object",
+        "description" : "Provides remittance information about a payment for garnishment-related purposes.",
+        "additionalProperties" : false,
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/GarnishmentType1"
+          },
+          "garnishee" : {
+            "$ref" : "#/components/schemas/PartyIdentification135"
+          },
+          "garnishment_administrator" : {
+            "$ref" : "#/components/schemas/PartyIdentification135"
+          },
+          "reference_number" : {
+            "$ref" : "#/components/schemas/Max140Text"
+          },
+          "date" : {
+            "$ref" : "#/components/schemas/ISODate"
+          },
+          "remitted_amount" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyAndAmount"
+          },
+          "family_medical_insurance_indicator" : {
+            "$ref" : "#/components/schemas/TrueFalseIndicator"
+          },
+          "employee_termination_indicator" : {
+            "$ref" : "#/components/schemas/TrueFalseIndicator"
+          }
+        },
+        "required" : [ "type" ]
+      },
+      "GarnishmentType1" : {
+        "type" : "object",
+        "description" : "Specifies the type of garnishment.",
+        "additionalProperties" : false,
+        "properties" : {
+          "code_or_proprietary" : {
+            "$ref" : "#/components/schemas/GarnishmentType1Choice"
+          },
+          "issuer" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          }
+        },
+        "required" : [ "code_or_proprietary" ]
+      },
+      "GarnishmentType1Choice" : {
+        "type" : "object",
+        "description" : "Specifies the type of garnishment.",
+        "additionalProperties" : true,
+        "oneOf" : [ {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "code" : {
+              "$ref" : "#/components/schemas/ExternalGarnishmentType1Code"
+            }
+          },
+          "required" : [ "code" ]
+        }, {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "proprietary" : {
+              "$ref" : "#/components/schemas/Max35Text"
+            }
+          },
+          "required" : [ "proprietary" ]
+        } ]
+      },
+      "GenericIdentification30" : {
+        "type" : "object",
+        "description" : "Information related to an identification, for example, party identification or account identification.",
+        "additionalProperties" : false,
+        "properties" : {
+          "identification" : {
+            "$ref" : "#/components/schemas/Exact4AlphaNumericText"
+          },
+          "issuer" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "scheme_name" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          }
+        },
+        "required" : [ "identification", "issuer" ]
+      },
+      "GenericOrganisationIdentification1" : {
+        "type" : "object",
+        "description" : "Information related to an identification of an organisation.",
+        "additionalProperties" : false,
+        "properties" : {
+          "identification" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "scheme_name" : {
+            "$ref" : "#/components/schemas/OrganisationIdentificationSchemeName1Choice"
+          },
+          "issuer" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          }
+        },
+        "required" : [ "identification" ]
+      },
+      "GenericPersonIdentification1" : {
+        "type" : "object",
+        "description" : "Information related to an identification of a person.",
+        "additionalProperties" : false,
+        "properties" : {
+          "identification" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "scheme_name" : {
+            "$ref" : "#/components/schemas/PersonIdentificationSchemeName1Choice"
+          },
+          "issuer" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          }
+        },
+        "required" : [ "identification" ]
+      },
+      "IBAN2007Identifier" : {
+        "type" : "string",
+        "description" : "An identifier used internationally by financial institutions to uniquely identify the account of a customer at a financial institution, as described in the latest edition of the international standard ISO 13616: 2007 - \"Banking and related financial services - International Bank Account Number (IBAN)\".",
+        "pattern" : "^[A-Z]{2,2}[0-9]{2,2}[a-zA-Z0-9]{1,30}$"
+      },
+      "ISODate" : {
+        "type" : "string",
+        "description" : "A particular point in the progression of time in a calendar year expressed in the YYYY-MM-DD format. This representation is defined in \"XML Schema Part 2: Datatypes Second Edition - W3C Recommendation 28 October 2004\" which is aligned with ISO 8601.",
+        "pattern" : "^(?:[1-9]\\d{3}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1\\d|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[1-9]\\d(?:0[48]|[2468][048]|[13579][26])|(?:[2468][048]|[13579][26])00)-02-29)(?:Z|[+-][01]\\d:[0-5]\\d)?$"
+      },
+      "ISODateTime" : {
+        "type" : "string",
+        "description" : "A particular point in the progression of time defined by a mandatory date and a mandatory time component, expressed in either UTC time format (YYYY-MM-DDThh:mm:ss.sssZ), local time with UTC offset format (YYYY-MM-DDThh:mm:ss.sss+/-hh:mm), or local time format (YYYY-MM-DDThh:mm:ss.sss). These representations are defined in \"XML Schema Part 2: Datatypes Second Edition - W3C Recommendation 28 October 2004\" which is aligned with ISO 8601.\nNote on the time format:\n1) beginning / end of calendar day\n00:00:00 = the beginning of a calendar day\n24:00:00 = the end of a calendar day\n2) fractions of second in time format\nDecimal fractions of seconds may be included. In this case, the involved parties shall agree on the maximum number of digits that are allowed.",
+        "pattern" : "^(?:[1-9]\\d{3}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1\\d|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[1-9]\\d(?:0[48]|[2468][048]|[13579][26])|(?:[2468][048]|[13579][26])00)-02-29)T(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.[0-9]+)?(?:Z|[+-][01]\\d:[0-5]\\d)?$"
+      },
+      "ISONormalisedDateTime" : {
+        "type" : "string",
+        "description" : "an ISODateTime whereby all timezoned dateTime values are UTC.",
+        "pattern" : "^(?:[1-9]\\d{3}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1\\d|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[1-9]\\d(?:0[48]|[2468][048]|[13579][26])|(?:[2468][048]|[13579][26])00)-02-29)T(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.[0-9]+)?(?:Z)$"
+      },
+      "LEIIdentifier" : {
+        "type" : "string",
+        "description" : "Legal Entity Identifier is a code allocated to a party as described in ISO 17442 \"Financial Services - Legal Entity Identifier (LEI)\".",
+        "pattern" : "^[A-Z0-9]{18,18}[0-9]{2,2}$"
+      },
+      "Max16Text" : {
+        "type" : "string",
+        "description" : "Specifies a character string with a maximum length of 16 characters.",
+        "minLength" : 1,
+        "maxLength" : 16
+      },
+      "Max70Text" : {
+        "type" : "string",
+        "description" : "Specifies a character string with a maximum length of 70characters.",
+        "minLength" : 1,
+        "maxLength" : 70
+      },
+      "Max128Text" : {
+        "type" : "string",
+        "description" : "Specifies a character string with a maximum length of 128 characters.",
+        "minLength" : 1,
+        "maxLength" : 128
+      },
+      "Max140Text" : {
+        "type" : "string",
+        "description" : "Specifies a character string with a maximum length of 140 characters.",
+        "minLength" : 1,
+        "maxLength" : 140
+      },
+      "Max2048Text" : {
+        "type" : "string",
+        "description" : "Specifies a character string with a maximum length of 2048 characters.",
+        "minLength" : 1,
+        "maxLength" : 2048
+      },
+      "Max34Text" : {
+        "type" : "string",
+        "description" : "Specifies a character string with a maximum length of 34 characters.",
+        "minLength" : 1,
+        "maxLength" : 34
+      },
+      "Max450Text" : {
+        "type" : "string",
+        "description" : "Specifies a character string with a maximum length of 350 characters.",
+        "minLength" : 1,
+        "maxLength" : 350
+      },
+      "Max35Text" : {
+        "type" : "string",
+        "description" : "Specifies a character string with a maximum length of 35 characters.",
+        "minLength" : 1,
+        "maxLength" : 35
+      },
+      "Max3Number" : {
+        "type" : "string",
+        "description" : "Number (max 999) of objects represented as an integer.",
+        "maxLength" : 4
+      },
+      "Max4Text" : {
+        "type" : "string",
+        "description" : "Specifies a character string with a maximum length of 4 characters.",
+        "minLength" : 1,
+        "maxLength" : 4
+      },
+      "NameAndAddress16" : {
+        "type" : "object",
+        "description" : "Information that locates and identifies a party.",
+        "additionalProperties" : false,
+        "properties" : {
+          "name" : {
+            "$ref" : "#/components/schemas/Max140Text"
+          },
+          "address" : {
+            "$ref" : "#/components/schemas/PostalAddress24"
+          }
+        },
+        "required" : [ "name", "address" ]
+      },
+      "NamePrefix2Code" : {
+        "type" : "string",
+        "description" : "Specifies the terms used to formally address a person.\n*`DOCT`-Title of the person is Doctor or Dr.\n*`MADM`-Title of the person is Madam.\n*`MISS`-Title of the person is Miss.\n*`MIST`-Title of the person is Mister or Mr.\n*`MIKS`-Title of the person is gender neutral (Mx).",
+        "enum" : [ "DOCT", "MADM", "MISS", "MIST", "MIKS" ]
+      },
+      "Number" : {
+        "type" : "string",
+        "description" : "Number of objects represented as an integer.",
+        "maxLength" : 19
+      },
+      "OrganisationIdentification29" : {
+        "type" : "object",
+        "description" : "Unique and unambiguous way to identify an organisation.",
+        "additionalProperties" : false,
+        "properties" : {
+          "any_bic" : {
+            "$ref" : "#/components/schemas/AnyBICDec2014Identifier"
+          },
+          "lei" : {
+            "$ref" : "#/components/schemas/LEIIdentifier"
+          },
+          "other" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GenericOrganisationIdentification1"
+            }
+          }
+        }
+      },
+      "OrganisationIdentificationSchemeName1Choice" : {
+        "type" : "object",
+        "description" : "Sets of elements to identify a name of the organisation identification scheme.",
+        "additionalProperties" : true,
+        "oneOf" : [ {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "code" : {
+              "$ref" : "#/components/schemas/ExternalOrganisationIdentification1Code"
+            }
+          },
+          "required" : [ "code" ]
+        }, {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "proprietary" : {
+              "$ref" : "#/components/schemas/Max35Text"
+            }
+          },
+          "required" : [ "proprietary" ]
+        } ]
+      },
+      "OtherContact1" : {
+        "type" : "object",
+        "description" : "Communication device number or electronic address used for communication.",
+        "additionalProperties" : false,
+        "properties" : {
+          "channel_type" : {
+            "$ref" : "#/components/schemas/Max4Text"
+          },
+          "identification" : {
+            "$ref" : "#/components/schemas/Max128Text"
+          }
+        },
+        "required" : [ "channel_type" ]
+      },
+      "PartyIdentification135" : {
+        "type" : "object",
+        "description" : "Specifies the identification of a person or an organisation.",
+        "additionalProperties" : false,
+        "properties" : {
+          "name" : {
+            "$ref" : "#/components/schemas/Max140Text"
+          },
+          "postal_address" : {
+            "$ref" : "#/components/schemas/PostalAddress24"
+          },
+          "identification" : {
+            "$ref" : "#/components/schemas/Party38Choice"
+          },
+          "country_of_residence" : {
+            "$ref" : "#/components/schemas/CountryCode"
+          },
+          "contact_details" : {
+            "$ref" : "#/components/schemas/Contact4"
+          }
+        }
+      },
+      "PartyIdentification221" : {
+        "type" : "object",
+        "description" : "Specifies the identification of a person or an organisation.",
+        "additionalProperties" : false,
+        "properties" : {
+          "name" : {
+            "$ref" : "#/components/schemas/Max140Text"
+          },
+          "any_bic" : {
+            "$ref" : "#/components/schemas/AnyBICDec2014Identifier"
+          }
+        }
+      },
+      "Party38Choice" : {
+        "type" : "object",
+        "description" : "Nature or use of the account.",
+        "additionalProperties" : true,
+        "oneOf" : [ {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "organisation_identification" : {
+              "$ref" : "#/components/schemas/OrganisationIdentification29"
+            }
+          },
+          "required" : [ "organisation_identification" ]
+        }, {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "private_identification" : {
+              "$ref" : "#/components/schemas/PersonIdentification13"
+            }
+          },
+          "required" : [ "private_identification" ]
+        } ]
+      },
+      "PaymentEvent16" : {
+        "type" : "object",
+        "description" : "This groups the information of an event, namely of a payment message or status confirmation update. \r\nUsage:\r\nIt is repeated as many times as there are events to be returned.",
+        "additionalProperties" : false,
+        "properties" : {
+          "from" : {
+            "$ref" : "#/components/schemas/AnyBICDec2014Identifier"
+          },
+          "to" : {
+            "$ref" : "#/components/schemas/BICFIDec2014Identifier"
+          },
+          "interbank_settlement_amount" : {
+            "$ref" : "#/components/schemas/ActiveCurrencyAndAmount"
+          },
+          "charge_bearer" : {
+            "$ref" : "#/components/schemas/ChargeBearerType3Code"
+          },
+          "charge_amount" : {
+            "$ref" : "#/components/schemas/ActiveCurrencyAndAmount"
+          },
+          "exchange_rate_data" : {
+            "$ref" : "#/components/schemas/CurrencyExchange12"
+          },
+          "processing_date_time" : {
+            "$ref" : "#/components/schemas/ISONormalisedDateTime"
+          }
+        },
+        "required" : [ "from", "processing_date_time" ]
+      },
+      "PaymentStatusReason13Code" : {
+        "type" : "string",
+        "description" : "Provides the reason for a payment status.\n*`G001`-The status originator transferred the Credit Transfer to the next agent or to a Market Infrastucture where the transaction’s service obligations may no longer be guaranteed.        \n*`G005`-Credit Transfer has been delivered to creditor agent with transaction’s service obligations maintained.\n*`G006`-Credit Transfer has been delivered to creditor agent where the transaction’s service obligations were no longer maintained.        ",
+        "enum" : [ "G001", "G005", "G006" ]
+      },
+      "PaymentTransaction163" : {
+        "type" : "object",
+        "description" : "Specifies the status of a single payment transaction.",
+        "additionalProperties" : false,
+        "properties" : {
+          "uetr" : {
+            "$ref" : "#/components/schemas/UUIDv4Identifier"
+          },
+          "instruction_identification" : {
+            "$ref" : "#/components/schemas/RestrictedFINXMax35Text"
+          },
+          "end_to_end_identification" : {
+            "$ref" : "#/components/schemas/RestrictedFINXMax35Text"
+          },
+          "transaction_status" : {
+            "$ref" : "#/components/schemas/TransactionIndividualStatus10Code"
+          },
+          "transaction_status_date" : {
+            "$ref" : "#/components/schemas/ISONormalisedDateTime"
+          },
+          "transaction_status_reason" : {
+            "$ref" : "#/components/schemas/PaymentStatusReason13Code"
+          },
+          "reject_return_reason" : {
+            "$ref" : "#/components/schemas/TrackerPaymentStatusReason3Code"
+          },
+          "tracker_informing_party" : {
+            "$ref" : "#/components/schemas/BICFIDec2014Identifier"
+          },
+          "service_level" : {
+            "$ref" : "#/components/schemas/ServiceLevel5Code"
+          },
+          "instructed_amount" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyAndAmount"
+          },
+          "equivalent_amount" : {
+            "$ref" : "#/components/schemas/EquivalentAmount2"
+          },
+          "interbank_settlement_amount" : {
+            "$ref" : "#/components/schemas/ActiveCurrencyAndAmount"
+          },
+          "confirmed_amount" : {
+            "$ref" : "#/components/schemas/ActiveCurrencyAndAmount"
+          },
+          "remaining_to_be_confirmed_amount" : {
+            "$ref" : "#/components/schemas/ActiveCurrencyAndAmount"
+          },
+          "previously_confirmed_amount" : {
+            "$ref" : "#/components/schemas/ActiveCurrencyAndAmount"
+          },
+          "requested_execution_date" : {
+            "$ref" : "#/components/schemas/DateAndDateTime2Choice"
+          },
+          "interbank_settlement_date" : {
+            "$ref" : "#/components/schemas/ISODate"
+          },
+          "confirmed_date" : {
+            "$ref" : "#/components/schemas/ISONormalisedDateTime"
+          },
+          "ultimate_debtor" : {
+            "$ref" : "#/components/schemas/PartyIdentification221"
+          },
+          "debtor" : {
+            "$ref" : "#/components/schemas/PartyIdentification221"
+          },
+          "debtor_account" : {
+            "$ref" : "#/components/schemas/CashAccount204"
+          },
+          "creditor" : {
+            "$ref" : "#/components/schemas/PartyIdentification221"
+          },
+          "creditor_account" : {
+            "$ref" : "#/components/schemas/CashAccount204"
+          },
+          "ultimate_creditor" : {
+            "$ref" : "#/components/schemas/PartyIdentification221"
+          },
+          "creditor_agent" : {
+            "$ref" : "#/components/schemas/BICFIDec2014Identifier"
+          },
+          "purpose" : {
+            "$ref" : "#/components/schemas/Max4Text"
+          },
+          "remittance_information" : {
+            "$ref" : "#/components/schemas/Remittance1"
+          },
+          "debit_confirmation_url_address" : {
+            "$ref" : "#/components/schemas/Max2048Text"
+          },
+          "payment_event" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PaymentEvent16"
+            }
+          }
+        },
+        "required" : [ "uetr", "transaction_status", "tracker_informing_party", "service_level", "payment_event" ]
+      },
+      "PercentageRate" : {
+        "type" : "string",
+        "description" : "Rate expressed as a percentage, that is, in hundredths, for example, 0.7 is 7/10 of a percent, and 7.0 is 7%.",
+        "maxLength" : 13
+      },
+      "PersonIdentification13" : {
+        "type" : "object",
+        "description" : "Unique and unambiguous way to identify a person.",
+        "additionalProperties" : false,
+        "properties" : {
+          "date_and_place_of_birth" : {
+            "$ref" : "#/components/schemas/DateAndPlaceOfBirth1"
+          },
+          "other" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GenericPersonIdentification1"
+            }
+          }
+        }
+      },
+      "PersonIdentificationSchemeName1Choice" : {
+        "type" : "object",
+        "description" : "Sets of elements to identify a name of the identification scheme.",
+        "additionalProperties" : true,
+        "oneOf" : [ {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "code" : {
+              "$ref" : "#/components/schemas/ExternalPersonIdentification1Code"
+            }
+          },
+          "required" : [ "code" ]
+        }, {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "proprietary" : {
+              "$ref" : "#/components/schemas/Max35Text"
+            }
+          },
+          "required" : [ "proprietary" ]
+        } ]
+      },
+      "PhoneNumber" : {
+        "type" : "string",
+        "description" : "The collection of information which identifies a specific phone or FAX number as defined by telecom services.\nIt consists of a \"+\" followed by the country code (from 1 to 3 characters) then a \"-\" and finally, any combination of numbers, \"(\", \")\", \"+\" and \"-\" (up to 30 characters).",
+        "pattern" : "^\\+[0-9]{1,3}-[0-9()+\\-]{1,30}$"
+      },
+      "PostalAddress24" : {
+        "type" : "object",
+        "description" : "Information that locates and identifies a specific address, as defined by postal services.",
+        "additionalProperties" : false,
+        "properties" : {
+          "address_type" : {
+            "$ref" : "#/components/schemas/AddressType3Choice"
+          },
+          "department" : {
+            "$ref" : "#/components/schemas/Max70Text"
+          },
+          "sub_department" : {
+            "$ref" : "#/components/schemas/Max70Text"
+          },
+          "street_name" : {
+            "$ref" : "#/components/schemas/Max70Text"
+          },
+          "building_number" : {
+            "$ref" : "#/components/schemas/Max16Text"
+          },
+          "building_name" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "floor" : {
+            "$ref" : "#/components/schemas/Max70Text"
+          },
+          "post_box" : {
+            "$ref" : "#/components/schemas/Max16Text"
+          },
+          "room" : {
+            "$ref" : "#/components/schemas/Max70Text"
+          },
+          "post_code" : {
+            "$ref" : "#/components/schemas/Max16Text"
+          },
+          "town_name" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "town_location_name" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "district_name" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "country_sub_division" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "country" : {
+            "$ref" : "#/components/schemas/CountryCode"
+          },
+          "address_line" : {
+            "type" : "array",
+            "maxItems" : 7,
+            "items" : {
+              "$ref" : "#/components/schemas/Max70Text"
+            }
+          }
+        }
+      },
+      "PreferredContactMethod1Code" : {
+        "type" : "string",
+        "description" : "Preferred method used to reach the individual contact within an organisation.\n*`LETT`-Preferred method used to reach the contact is per letter.\n*`MAIL`-Preferred method used to reach the contact is per email.\n*`PHON`-Preferred method used to reach the contact is per phone.\n*`FAXX`-Preferred method used to reach the contact is per fax.\n*`CELL`-Preferred method used to reach the contact is per mobile or cell phone.",
+        "enum" : [ "LETT", "MAIL", "PHON", "FAXX", "CELL" ]
+      },
+      "ReferredDocumentType3Choice" : {
+        "type" : "object",
+        "description" : "Specifies the type of the document referred in the remittance information.",
+        "additionalProperties" : true,
+        "oneOf" : [ {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "code" : {
+              "$ref" : "#/components/schemas/DocumentType6Code"
+            }
+          },
+          "required" : [ "code" ]
+        }, {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "proprietary" : {
+              "$ref" : "#/components/schemas/Max35Text"
+            }
+          },
+          "required" : [ "proprietary" ]
+        } ]
+      },
+      "ReferredDocumentType4" : {
+        "type" : "object",
+        "description" : "Specifies the type of the document referred in the remittance information.",
+        "additionalProperties" : false,
+        "properties" : {
+          "code_or_proprietary" : {
+            "$ref" : "#/components/schemas/ReferredDocumentType3Choice"
+          },
+          "issuer" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          }
+        },
+        "required" : [ "code_or_proprietary" ]
+      },
+      "ReferredDocumentInformation7" : {
+        "type" : "object",
+        "description" : "Set of elements used to identify the documents referred to in the remittance information.",
+        "additionalProperties" : false,
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/ReferredDocumentType4"
+          },
+          "number" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "related_date" : {
+            "$ref" : "#/components/schemas/ISODate"
+          },
+          "line_details" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DocumentLineInformation1"
+            }
+          }
+        }
+      },
+      "Remittance1" : {
+        "type" : "object",
+        "description" : "Specifies the remittance resource for direct access to the remittance information. Either unstructured or structured is supplied.",
+        "additionalProperties" : false,
+        "properties" : {
+          "unstructured" : {
+            "$ref" : "#/components/schemas/Max140Text"
+          },
+          "structured" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/StructuredRemittanceInformation16"
+            }
+          },
+          "related" : {
+            "type" : "array",
+            "maxItems" : 10,
+            "items" : {
+              "$ref" : "#/components/schemas/RemittanceLocation7"
+            }
+          }
+        }
+      },
+      "RemittanceAmount2" : {
+        "type" : "object",
+        "description" : "Nature of the amount and currency on a document referred to in the remittance section, typically either the original amount due/payable or the amount actually remitted for the referenced document.",
+        "additionalProperties" : false,
+        "properties" : {
+          "due_payable_amount" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyAndAmount"
+          },
+          "discount_applied_amount" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DiscountAmountAndType1"
+            }
+          },
+          "credit_note_amount" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyAndAmount"
+          },
+          "tax_amount" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TaxAmountAndType1"
+            }
+          },
+          "adjustment_amount_and_reason" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DocumentAdjustment1"
+            }
+          },
+          "remitted_amount" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyAndAmount"
+          }
+        }
+      },
+      "RemittanceAmount3" : {
+        "type" : "object",
+        "description" : "Nature of the amount and currency on a document referred to in the remittance section, typically either the original amount due/payable or the amount actually remitted for the referenced document.",
+        "additionalProperties" : false,
+        "properties" : {
+          "due_payable_amount" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyAndAmount"
+          },
+          "discount_applied_amount" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DiscountAmountAndType1"
+            }
+          },
+          "credit_note_amount" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyAndAmount"
+          },
+          "tax_amount" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TaxAmountAndType1"
+            }
+          },
+          "adjustment_amount_and_reason" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DocumentAdjustment1"
+            }
+          },
+          "remitted_amount" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyAndAmount"
+          }
+        }
+      },
+      "RemittanceLocation7" : {
+        "type" : "object",
+        "description" : "Provides information on the remittance advice.",
+        "additionalProperties" : false,
+        "properties" : {
+          "remittance_identification" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "remittance_location_details" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RemittanceLocationData1"
+            }
+          }
+        }
+      },
+      "RemittanceLocationData1" : {
+        "type" : "object",
+        "description" : "Provides additional details on the remittance advice.",
+        "additionalProperties" : false,
+        "properties" : {
+          "method" : {
+            "$ref" : "#/components/schemas/RemittanceLocationMethod2Code"
+          },
+          "electronic_address" : {
+            "$ref" : "#/components/schemas/Max2048Text"
+          },
+          "postal_address" : {
+            "$ref" : "#/components/schemas/NameAndAddress16"
+          }
+        },
+        "required" : [ "method" ]
+      },
+      "RemittanceLocationMethod2Code" : {
+        "type" : "string",
+        "description" : "Specifies the method used to deliver the remittance advice information.\n*`FAXI`-Remittance advice information must be faxed.\n*`EDIC`-Remittance advice information must be sent through Electronic Data Interchange (EDI).\n*`URID`-Remittance advice information needs to be sent to a Uniform Resource Identifier (URI). URI is a compact string of characters that uniquely identify an abstract or physical resource. URI's are the super-set of identifiers, such as URLs, email addresses, ftp sites, etc, and as such, provide the syntax for all of the identification schemes.\n*`EMAL`-Remittance advice information must be sent through e-mail.\n*`POST`-Remittance advice information must be sent through postal services.\n*`SMSM`-Remittance advice information must be sent through by phone as a short message service (SMS).",
+        "enum" : [ "FAXI", "EDIC", "URID", "EMAL", "POST", "SMSM" ]
+      },
+      "RestrictedFINXMax35Text" : {
+        "type" : "string",
+        "description" : "Specifies a character string with a maximum length of 35 characters limited to character set X, that is, a-z A-Z / - ? : ( ) . , ‘ + .",
+        "minLength" : 1,
+        "maxLength" : 35,
+        "pattern" : "^[0-9a-zA-Z/\\-\\?:\\(\\)\\.,'\\+ ]{1,35}$"
+      },
+      "ServiceLevel5Code" : {
+        "type" : "string",
+        "description" : "Indicates the gpi for corporates service level.\r\n\r\nG003 for outbound tracking (Pay and Trace) and G007 for inbound tracking.\n*`G007`-gpi Inbound Tracking Service\n*`G003`-gpi Pay And Trace Service",
+        "enum" : [ "G007", "G003" ]
+      },
+      "StructuredRemittanceInformation16" : {
+        "type" : "object",
+        "description" : "Information supplied to enable the matching/reconciliation of an entry with the items that the payment is intended to settle, such as commercial invoices in an accounts' receivable system, in a structured form.",
+        "additionalProperties" : false,
+        "properties" : {
+          "referred_document_information" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ReferredDocumentInformation7"
+            }
+          },
+          "referred_document_amount" : {
+            "$ref" : "#/components/schemas/RemittanceAmount2"
+          },
+          "creditor_reference_information" : {
+            "$ref" : "#/components/schemas/CreditorReferenceInformation2"
+          },
+          "invoicer" : {
+            "$ref" : "#/components/schemas/PartyIdentification135"
+          },
+          "invoicee" : {
+            "$ref" : "#/components/schemas/PartyIdentification135"
+          },
+          "tax_remittance" : {
+            "$ref" : "#/components/schemas/TaxInformation7"
+          },
+          "garnishment_remittance" : {
+            "$ref" : "#/components/schemas/Garnishment3"
+          },
+          "additional_remittance_information" : {
+            "type" : "array",
+            "maxItems" : 3,
+            "items" : {
+              "$ref" : "#/components/schemas/Max140Text"
+            }
+          }
+        }
+      },
+      "TaxAmount2" : {
+        "type" : "object",
+        "description" : "Set of elements used to provide information on the tax amount(s) of tax record.",
+        "additionalProperties" : false,
+        "properties" : {
+          "rate" : {
+            "$ref" : "#/components/schemas/PercentageRate"
+          },
+          "taxable_base_amount" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyAndAmount"
+          },
+          "total_amount" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyAndAmount"
+          },
+          "details" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TaxRecordDetails2"
+            }
+          }
+        }
+      },
+      "TaxAmountAndType1" : {
+        "type" : "object",
+        "description" : "Specifies the amount with a specific type.",
+        "additionalProperties" : false,
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/TaxAmountType1Choice"
+          },
+          "amount" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyAndAmount"
+          }
+        },
+        "required" : [ "amount" ]
+      },
+      "TaxAmountType1Choice" : {
+        "type" : "object",
+        "description" : "Specifies the amount type.",
+        "additionalProperties" : true,
+        "oneOf" : [ {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "code" : {
+              "$ref" : "#/components/schemas/ExternalTaxAmountType1Code"
+            }
+          },
+          "required" : [ "code" ]
+        }, {
+          "type" : "object",
+          "additionalProperties" : false,
+          "properties" : {
+            "proprietary" : {
+              "$ref" : "#/components/schemas/Max35Text"
+            }
+          },
+          "required" : [ "proprietary" ]
+        } ]
+      },
+      "TaxAuthorisation1" : {
+        "type" : "object",
+        "description" : "Details of the authorised tax paying party.",
+        "additionalProperties" : false,
+        "properties" : {
+          "title" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "name" : {
+            "$ref" : "#/components/schemas/Max140Text"
+          }
+        }
+      },
+      "TaxInformation7" : {
+        "type" : "object",
+        "description" : "Details about tax paid, or to be paid, to the government in accordance with the law, including pre-defined parameters such as thresholds and type of account.",
+        "additionalProperties" : false,
+        "properties" : {
+          "creditor" : {
+            "$ref" : "#/components/schemas/TaxParty1"
+          },
+          "debtor" : {
+            "$ref" : "#/components/schemas/TaxParty2"
+          },
+          "ultimate_debtor" : {
+            "$ref" : "#/components/schemas/TaxParty2"
+          },
+          "administration_zone" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "reference_number" : {
+            "$ref" : "#/components/schemas/Max140Text"
+          },
+          "method" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "total_taxable_base_amount" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyAndAmount"
+          },
+          "total_tax_amount" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyAndAmount"
+          },
+          "date" : {
+            "$ref" : "#/components/schemas/ISODate"
+          },
+          "sequence_number" : {
+            "$ref" : "#/components/schemas/Number"
+          },
+          "record" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TaxRecord2"
+            }
+          }
+        }
+      },
+      "TaxParty1" : {
+        "type" : "object",
+        "description" : "Details about the entity involved in the tax paid or to be paid.",
+        "additionalProperties" : false,
+        "properties" : {
+          "tax_identification" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "registration_identification" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "tax_type" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          }
+        }
+      },
+      "TaxParty2" : {
+        "type" : "object",
+        "description" : "Details about the entity involved in the tax paid or to be paid.",
+        "additionalProperties" : false,
+        "properties" : {
+          "tax_identification" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "registration_identification" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "tax_type" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "authorisation" : {
+            "$ref" : "#/components/schemas/TaxAuthorisation1"
+          }
+        }
+      },
+      "TaxPeriod2" : {
+        "type" : "object",
+        "description" : "Period of time details related to the tax payment.",
+        "additionalProperties" : false,
+        "properties" : {
+          "year" : {
+            "$ref" : "#/components/schemas/ISODate"
+          },
+          "type" : {
+            "$ref" : "#/components/schemas/TaxRecordPeriod1Code"
+          },
+          "from_to_date" : {
+            "$ref" : "#/components/schemas/DatePeriod2"
+          }
+        }
+      },
+      "TaxRecord2" : {
+        "type" : "object",
+        "description" : "Set of elements used to define the tax record.",
+        "additionalProperties" : false,
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "category" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "category_details" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "debtor_status" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "certificate_identification" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "forms_code" : {
+            "$ref" : "#/components/schemas/Max35Text"
+          },
+          "period" : {
+            "$ref" : "#/components/schemas/TaxPeriod2"
+          },
+          "tax_amount" : {
+            "$ref" : "#/components/schemas/TaxAmount2"
+          },
+          "additional_information" : {
+            "$ref" : "#/components/schemas/Max140Text"
+          }
+        }
+      },
+      "TaxRecordDetails2" : {
+        "type" : "object",
+        "description" : "Provides information on the individual tax amount(s) per period of the tax record.",
+        "additionalProperties" : false,
+        "properties" : {
+          "period" : {
+            "$ref" : "#/components/schemas/TaxPeriod2"
+          },
+          "amount" : {
+            "$ref" : "#/components/schemas/ActiveOrHistoricCurrencyAndAmount"
+          }
+        },
+        "required" : [ "amount" ]
+      },
+      "TaxRecordPeriod1Code" : {
+        "type" : "string",
+        "description" : "Specifies the period related to the tax payment.\n*`MM01`-Tax is related to the second month of the period.\n*`MM02`-Tax is related to the first month of the period.\n*`MM03`-Tax is related to the third month of the period.\n*`MM04`-Tax is related to the fourth month of the period.\n*`MM05`-Tax is related to the fifth month of the period.\n*`MM06`-Tax is related to the sixth month of the period.\n*`MM07`-Tax is related to the seventh month of the period.\n*`MM08`-Tax is related to the eighth month of the period.\n*`MM09`-Tax is related to the ninth month of the period.\n*`MM10`-Tax is related to the tenth month of the period.\n*`MM11`-Tax is related to the eleventh month of the period.\n*`MM12`-Tax is related to the twelfth month of the period.\n*`QTR1`-Tax is related to the first quarter of the period.\n*`QTR2`-Tax is related to the second quarter of the period.\n*`QTR3`-Tax is related to the third quarter of the period.\n*`QTR4`-Tax is related to the forth quarter of the period.\n*`HLF1`-Tax is related to the first half of the period.\n*`HLF2`-Tax is related to the second half of the period.",
+        "enum" : [ "MM01", "MM02", "MM03", "MM04", "MM05", "MM06", "MM07", "MM08", "MM09", "MM10", "MM11", "MM12", "QTR1", "QTR2", "QTR3", "QTR4", "HLF1", "HLF2" ]
+      },
+      "TransactionIndividualStatus10Code" : {
+        "type" : "string",
+        "description" : "Specifies the status of a single payment transaction.\n*`ACCC`-Settlement on the creditor's account has been completed. \n*`ACCP`-Preceding check of technical validation was successful. Customer profile check was also successful.\n*`ACSC`-Settlement on the debtor's account has been completed. \n\nUsage : this can be used by the first agent to report to the debtor that the transaction has been completed. Warning : this status is provided for transaction status reasons, not for financial information. It can only be used after bilateral agreement\n*`ACSP`-All preceding checks such as technical validation and customer profile were successful and therefore the payment initiation has been accepted for execution.\n*`PDNG`-Payment initiation or individual transaction included in the payment initiation is pending.  Further checks and status update will be performed.\n*`RCVD`-Payment initiation has been received by the receiving agent.\n*`RJCT`-Payment initiation or individual transaction included in the payment initiation has been rejected.",
+        "enum" : [ "ACCC", "ACCP", "ACSC", "ACSP", "PDNG", "RCVD", "RJCT" ]
+      },
+      "TrueFalseIndicator" : {
+        "type" : "boolean",
+        "description" : "A flag indicating a True or False value."
+      },
+      "UUIDv4Identifier" : {
+        "type" : "string",
+        "description" : "Universally Unique IDentifier (UUID) version 4, as described in IETC RFC 4122 \"Universally Unique IDentifier (UUID) URN Namespace\".",
+        "pattern" : "^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$"
+      }
+    },
+    "examples" : {
+      "inbound_corporate_payment_uetr_search" : {
+        "summary" : "inbound UETR search",
+        "value" : {
+          "uetr" : "97ed4827-7b6f-4491-a06f-b548d5a7512e",
+          "service_level" : "G007"
+        }
+      },
+      "outbound_corporate_payment_uetr_search" : {
+        "summary" : "outbound UETR search",
+        "value" : {
+          "uetr" : "88ed4827-7b6f-4491-a06f-b548d5a7512e",
+          "service_level" : "G003"
+        }
+      },
+      "inbound_corporate_payment_time_window_search" : {
+        "summary" : "inbound time window search",
+        "value" : {
+          "start_date_time" : "2023-04-06T12:00:00.000Z",
+          "end_date_time" : "2023-04-08T23:59:59.000Z",
+          "service_level" : "G007",
+          "event_filter" : true,
+          "maximum_number" : "100"
+        }
+      },
+      "outbound_corporate_payment_time_window_search" : {
+        "summary" : "outbound time window search",
+        "value" : {
+          "start_date_time" : "2023-04-06T12:00:00.000Z",
+          "end_date_time" : "2023-04-08T23:59:59.000Z",
+          "service_level" : "G003",
+          "event_filter" : true,
+          "maximum_number" : "100"
+        }
+      },
+      "inbound_corporate_payment_time_window_continue_search" : {
+        "summary" : "continuation of inbound time window search",
+        "value" : {
+          "service_level" : "G007",
+          "next" : "7YK1JNzidk8G3f%2BgyhVdiA%3D%3D"
+        }
+      },
+      "outbound_corporate_payment_time_window_continue_search" : {
+        "summary" : "continuation of outbound time window search",
+        "value" : {
+          "service_level" : "G003",
+          "next" : "7YK1JNzidk8G3f%2BgyhVdiA%3D%3D"
+        }
+      },
+      "inbound_corporate_payment_time_window_creditor_search" : {
+        "summary" : "inbound time window search with Creditor Party",
+        "value" : {
+          "start_date_time" : "2023-04-08T00:00:00.000Z",
+          "end_date_time" : "2023-04-08T23:59:59.000Z",
+          "service_level" : "G007",
+          "creditor" : "CORPBIC1XXX",
+          "maximum_number" : "100"
+        }
+      },
+      "outbound_corporate_payment_time_window_debtor_search" : {
+        "summary" : "outbound time window search with Debtor Party",
+        "value" : {
+          "start_date_time" : "2023-04-08T00:00:00.000Z",
+          "end_date_time" : "2023-04-08T23:59:59.000Z",
+          "service_level" : "G003",
+          "debtor" : "CORPBIC2XXX",
+          "maximum_number" : "100"
+        }
+      },
+      "inbound_corporate_payment_time_window_creditor_account_search" : {
+        "summary" : "inbound time window search with Creditor Account",
+        "value" : {
+          "start_date_time" : "2023-04-08T00:00:00.000Z",
+          "end_date_time" : "2023-04-08T23:59:59.000Z",
+          "service_level" : "G007",
+          "creditor_account" : "Acct12DFDDR0499-33",
+          "maximum_number" : "100"
+        }
+      },
+      "outbound_corporate_payment_time_window_debtor_account_search" : {
+        "summary" : "outbound time window search with Debtor Account",
+        "value" : {
+          "start_date_time" : "2023-04-08T00:00:00.000Z",
+          "end_date_time" : "2023-04-08T23:59:59.000Z",
+          "service_level" : "G003",
+          "debtor_account" : "Acctdfdf12DFdfdfDD-44",
+          "maximum_number" : "100"
+        }
+      },
+      "inbound_corporate_payment_time_window_event_statusACSP_search" : {
+        "summary" : "inbound time window search with EventFilter and StatusFilter ACSP",
+        "value" : {
+          "start_date_time" : "2023-04-08T00:00:00.000Z",
+          "end_date_time" : "2023-04-08T23:59:59.000Z",
+          "service_level" : "G007",
+          "event_filter" : false,
+          "status_filter" : "ACSP",
+          "maximum_number" : "100"
+        }
+      },
+      "outbound_corporate_payment_time_window_event_statusRCVD_search" : {
+        "summary" : "outbound time window search with EventFilter and StatusFilter RCVD",
+        "value" : {
+          "start_date_time" : "2023-04-08T00:00:00.000Z",
+          "end_date_time" : "2023-04-08T23:59:59.000Z",
+          "service_level" : "G003",
+          "event_filter" : false,
+          "status_filter" : "RCVD",
+          "maximum_number" : "100"
+        }
+      },
+      "inbound_corporate_payment_end_to_end_identification_search" : {
+        "summary" : "inbound end to end identification search",
+        "value" : {
+          "end_to_end_identification" : "payment123",
+          "service_level" : "G007"
+        }
+      },
+      "outbound_corporate_payment_end_to_end_identification_search" : {
+        "summary" : "outbound end to end identification search",
+        "value" : {
+          "end_to_end_identification" : "payment456",
+          "service_level" : "G003"
+        }
+      },
+      "outbound_corporate_payment_time_window_event_statusACSC_proof_of_debit_search" : {
+        "summary" : "outbound time window search with EventFilter and StatusFilter ACSC including proof of debit",
+        "value" : {
+          "start_date_time" : "2023-04-08T00:00:00.000Z",
+          "end_date_time" : "2023-04-08T23:59:59.000Z",
+          "service_level" : "G003",
+          "event_filter" : false,
+          "status_filter" : "ACSC",
+          "maximum_number" : "100"
+        }
+      },
+      "inbound_corporate_payment_uetr_search_result" : {
+        "summary" : "search result uetr search inbound payments",
+        "value" : {
+          "payment_transaction" : [ {
+            "uetr" : "97ed4827-7b6f-4491-a06f-b548d5a7512e",
+            "end_to_end_identification" : "nmM6YPHYo",
+            "transaction_status" : "ACCC",
+            "tracker_informing_party" : "BANABEBBXXX",
+            "service_level" : "G007",
+            "instructed_amount" : {
+              "currency" : "USD",
+              "amount" : "1000.0"
+            },
+            "confirmed_amount" : {
+              "currency" : "USD",
+              "amount" : "970.0"
+            },
+            "interbank_settlement_date" : "2023-04-08",
+            "confirmed_date" : "2023-04-08T13:00:01.000Z",
+            "ultimate_debtor" : {
+              "name" : "debtor1"
+            },
+            "debtor" : {
+              "name" : "CorporateA"
+            },
+            "debtor_account" : {
+              "identification" : {
+                "iban" : "DG38E1HrEL6ToVxRv1ff1xUPb5KGEVD"
+              }
+            },
+            "creditor" : {
+              "any_bic" : "CORPFRPPXXX"
+            },
+            "creditor_account" : {
+              "identification" : {
+                "iban" : "RS45NqW68X"
+              }
+            },
+            "ultimate_creditor" : {
+              "name" : "creditor1"
+            },
+            "creditor_agent" : "BANBFRPPXXX",
+            "purpose" : "IVPT",
+            "remittance_information" : {
+              "structured" : [ {
+                "creditor_reference_information" : {
+                  "type" : {
+                    "code_or_proprietary" : {
+                      "code" : "SCOR"
+                    }
+                  },
+                  "reference" : "110/1120/55090"
+                }
+              } ]
+            },
+            "payment_event" : [ {
+              "from" : "BANABEBBXXX",
+              "to" : "BANABEBBXXX",
+              "interbank_settlement_amount" : {
+                "currency" : "USD",
+                "amount" : "990.0"
+              },
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "10.0"
+              },
+              "processing_date_time" : "2023-04-08T14:00:01.000Z"
+            }, {
+              "from" : "BANBUS33XXX",
+              "to" : "BANBFRPPXXX",
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "20.0"
+              },
+              "processing_date_time" : "2023-04-08T12:00:01.000Z"
+            } ]
+          } ]
+        }
+      },
+      "outbound_corporate_payment_uetr_search_result" : {
+        "summary" : "search result uetr search outbound payments",
+        "value" : {
+          "payment_transaction" : [ {
+            "uetr" : "88ed4827-7b6f-4491-a06f-b548d5a7512e",
+            "instruction_identification" : "ABC123",
+            "end_to_end_identification" : "nmM6YPHYo",
+            "transaction_status" : "ACCC",
+            "tracker_informing_party" : "BANABEBBXXX",
+            "service_level" : "G003",
+            "instructed_amount" : {
+              "currency" : "USD",
+              "amount" : "1000.0"
+            },
+            "confirmed_amount" : {
+              "currency" : "USD",
+              "amount" : "960.0"
+            },
+            "interbank_settlement_date" : "2023-04-08",
+            "confirmed_date" : "2023-04-08T13:00:01.000Z",
+            "ultimate_debtor" : {
+              "name" : "flowergarden"
+            },
+            "debtor" : {
+              "name" : "SunnyFlowers"
+            },
+            "debtor_account" : {
+              "identification" : {
+                "iban" : "DG38E1HrEL6ToVxRv1ff1xUPb5KGEVD"
+              }
+            },
+            "creditor" : {
+              "name" : "DutchFlowers"
+            },
+            "creditor_account" : {
+              "identification" : {
+                "iban" : "RS45NqW68X"
+              }
+            },
+            "ultimate_creditor" : {
+              "name" : "flowerpower"
+            },
+            "creditor_agent" : "BANABEBBXXX",
+            "purpose" : "IVPT",
+            "remittance_information" : {
+              "structured" : [ {
+                "creditor_reference_information" : {
+                  "type" : {
+                    "code_or_proprietary" : {
+                      "code" : "SCOR"
+                    }
+                  },
+                  "reference" : "110/1120/55090"
+                }
+              } ]
+            },
+            "payment_event" : [ {
+              "from" : "BANCFRPPXXX",
+              "to" : "BANBUS33XXX",
+              "interbank_settlement_amount" : {
+                "currency" : "USD",
+                "amount" : "990.0"
+              },
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "10.0"
+              },
+              "processing_date_time" : "2023-04-08T14:00:07.000Z"
+            }, {
+              "from" : "BANBUS33XXX",
+              "to" : "BANABEBBXXX",
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "30.0"
+              },
+              "processing_date_time" : "2023-04-08T14:00:06.000Z"
+            } ]
+          } ]
+        }
+      },
+      "inbound_corporate_payment_time_window_search_result" : {
+        "summary" : "inbound time window search result",
+        "value" : {
+          "payment_transaction" : [ {
+            "uetr" : "97ed4827-7b6f-4491-a06f-b548d5a7512e",
+            "end_to_end_identification" : "nmM6YPHYo",
+            "transaction_status" : "ACCC",
+            "tracker_informing_party" : "BANABEBBXXX",
+            "service_level" : "G007",
+            "instructed_amount" : {
+              "currency" : "USD",
+              "amount" : "1000.0"
+            },
+            "confirmed_amount" : {
+              "currency" : "USD",
+              "amount" : "970.0"
+            },
+            "interbank_settlement_date" : "2023-04-08",
+            "confirmed_date" : "2023-04-08T13:00:01.000Z",
+            "ultimate_debtor" : {
+              "name" : "debtor1"
+            },
+            "debtor" : {
+              "name" : "CorporateA"
+            },
+            "debtor_account" : {
+              "identification" : {
+                "iban" : "DG38E1HrEL6ToVxRv1ff1xUPb5KGEVD"
+              }
+            },
+            "creditor" : {
+              "any_bic" : "CORPFRPPXXX"
+            },
+            "creditor_account" : {
+              "identification" : {
+                "iban" : "RS45NqW68X"
+              }
+            },
+            "ultimate_creditor" : {
+              "name" : "creditor1"
+            },
+            "creditor_agent" : "BANBFRPPXXX",
+            "purpose" : "IVPT",
+            "remittance_information" : {
+              "structured" : [ {
+                "creditor_reference_information" : {
+                  "type" : {
+                    "code_or_proprietary" : {
+                      "code" : "SCOR"
+                    }
+                  },
+                  "reference" : "110/1120/55090"
+                }
+              } ]
+            },
+            "payment_event" : [ {
+              "from" : "BANABEBBXXX",
+              "to" : "BANABEBBXXX",
+              "interbank_settlement_amount" : {
+                "currency" : "USD",
+                "amount" : "990.0"
+              },
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "10.0"
+              },
+              "processing_date_time" : "2023-04-08T14:00:01.000Z"
+            }, {
+              "from" : "BANBUS33XXX",
+              "to" : "BANBFRPPXXX",
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "20.0"
+              },
+              "processing_date_time" : "2023-04-08T12:00:01.000Z"
+            } ]
+          }, {
+            "uetr" : "33ed4827-7b6f-4491-a06f-b548d5a7512e",
+            "end_to_end_identification" : "payment1",
+            "transaction_status" : "ACCC",
+            "tracker_informing_party" : "BANABEBBXXX",
+            "service_level" : "G007",
+            "instructed_amount" : {
+              "currency" : "USD",
+              "amount" : "2000.0"
+            },
+            "confirmed_amount" : {
+              "currency" : "USD",
+              "amount" : "1970.0"
+            },
+            "interbank_settlement_date" : "2023-04-08",
+            "confirmed_date" : "2023-04-08T13:00:01.000Z",
+            "ultimate_debtor" : {
+              "name" : "debtor2"
+            },
+            "debtor" : {
+              "name" : "CorporateB"
+            },
+            "debtor_account" : {
+              "identification" : {
+                "iban" : "DG38E1Hrdfdqdf"
+              }
+            },
+            "creditor" : {
+              "any_bic" : "CORPFRPPXXX"
+            },
+            "creditor_account" : {
+              "identification" : {
+                "iban" : "RS45NqW68X"
+              }
+            },
+            "ultimate_creditor" : {
+              "name" : "creditor2"
+            },
+            "creditor_agent" : "BANBFRPPXXX",
+            "purpose" : "INSU",
+            "remittance_information" : {
+              "structured" : [ {
+                "creditor_reference_information" : {
+                  "type" : {
+                    "code_or_proprietary" : {
+                      "code" : "SCOR"
+                    }
+                  },
+                  "reference" : "220/1440/59090"
+                }
+              } ]
+            },
+            "payment_event" : [ {
+              "from" : "BANABEBBXXX",
+              "to" : "BANABEBBXXX",
+              "interbank_settlement_amount" : {
+                "currency" : "USD",
+                "amount" : "1980.0"
+              },
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "20.0"
+              },
+              "processing_date_time" : "2023-04-08T14:00:01.000Z"
+            }, {
+              "from" : "BANBUS33XXX",
+              "to" : "BANBFRPPXXX",
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "10.0"
+              },
+              "processing_date_time" : "2023-04-08T12:00:01.000Z"
+            } ]
+          } ]
+        }
+      },
+      "outbound_corporate_payment_time_window_search_result" : {
+        "summary" : "outbound time window search result",
+        "value" : {
+          "payment_transaction" : [ {
+            "uetr" : "97ed4827-7b6f-4491-a06f-b548d5a7512e",
+            "instruction_identification" : "dfljd",
+            "end_to_end_identification" : "nmM6YPHYo",
+            "transaction_status" : "ACCC",
+            "tracker_informing_party" : "BANABEBBXXX",
+            "service_level" : "G003",
+            "instructed_amount" : {
+              "currency" : "USD",
+              "amount" : "1000.0"
+            },
+            "confirmed_amount" : {
+              "currency" : "USD",
+              "amount" : "970.0"
+            },
+            "interbank_settlement_date" : "2023-04-08",
+            "confirmed_date" : "2023-04-08T13:00:01.000Z",
+            "ultimate_debtor" : {
+              "name" : "debtor1"
+            },
+            "debtor" : {
+              "name" : "CorporateA"
+            },
+            "debtor_account" : {
+              "identification" : {
+                "iban" : "DG38E1HrEL6ToVxRv1ff1xUPb5KGEVD"
+              }
+            },
+            "creditor" : {
+              "any_bic" : "CORPFRPPXXX"
+            },
+            "creditor_account" : {
+              "identification" : {
+                "iban" : "RS45NqW68X"
+              }
+            },
+            "ultimate_creditor" : {
+              "name" : "creditor1"
+            },
+            "creditor_agent" : "BANBFRPPXXX",
+            "purpose" : "IVPT",
+            "remittance_information" : {
+              "structured" : [ {
+                "creditor_reference_information" : {
+                  "type" : {
+                    "code_or_proprietary" : {
+                      "code" : "SCOR"
+                    }
+                  },
+                  "reference" : "110/1120/55090"
+                }
+              } ]
+            },
+            "payment_event" : [ {
+              "from" : "BANABEBBXXX",
+              "to" : "BANABEBBXXX",
+              "interbank_settlement_amount" : {
+                "currency" : "USD",
+                "amount" : "990.0"
+              },
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "10.0"
+              },
+              "processing_date_time" : "2023-04-08T14:00:01.000Z"
+            }, {
+              "from" : "BANBUS33XXX",
+              "to" : "BANBFRPPXXX",
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "20.0"
+              },
+              "processing_date_time" : "2023-04-08T12:00:01.000Z"
+            } ]
+          }, {
+            "uetr" : "33ed4827-7b6f-4491-a06f-b548d5a7512e",
+            "instruction_identification" : "ddfd",
+            "end_to_end_identification" : "payment1",
+            "transaction_status" : "ACCC",
+            "tracker_informing_party" : "BANABEBBXXX",
+            "service_level" : "G003",
+            "instructed_amount" : {
+              "currency" : "USD",
+              "amount" : "2000.0"
+            },
+            "confirmed_amount" : {
+              "currency" : "USD",
+              "amount" : "1970.0"
+            },
+            "interbank_settlement_date" : "2023-04-08",
+            "confirmed_date" : "2023-04-08T13:00:01.000Z",
+            "ultimate_debtor" : {
+              "name" : "debtor2"
+            },
+            "debtor" : {
+              "name" : "CorporateB"
+            },
+            "debtor_account" : {
+              "identification" : {
+                "iban" : "DG38E1Hrdfdqdf"
+              }
+            },
+            "creditor" : {
+              "any_bic" : "CORPFRPPXXX"
+            },
+            "creditor_account" : {
+              "identification" : {
+                "iban" : "RS45NqW68X"
+              }
+            },
+            "ultimate_creditor" : {
+              "name" : "creditor2"
+            },
+            "creditor_agent" : "BANBFRPPXXX",
+            "purpose" : "INSU",
+            "remittance_information" : {
+              "structured" : [ {
+                "creditor_reference_information" : {
+                  "type" : {
+                    "code_or_proprietary" : {
+                      "code" : "SCOR"
+                    }
+                  },
+                  "reference" : "220/1440/59090"
+                }
+              } ]
+            },
+            "payment_event" : [ {
+              "from" : "BANABEBBXXX",
+              "to" : "BANABEBBXXX",
+              "interbank_settlement_amount" : {
+                "currency" : "USD",
+                "amount" : "1980.0"
+              },
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "20.0"
+              },
+              "processing_date_time" : "2023-04-08T14:00:01.000Z"
+            }, {
+              "from" : "BANBUS33XXX",
+              "to" : "BANBFRPPXXX",
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "10.0"
+              },
+              "processing_date_time" : "2023-04-08T12:00:01.000Z"
+            } ]
+          } ]
+        }
+      },
+      "inbound_corporate_payment_time_window_creditor_account_search_result" : {
+        "summary" : "inbound time window search result with Creditor Account",
+        "value" : {
+          "payment_transaction" : [ {
+            "uetr" : "97ed4827-7b6f-4491-a06f-b548d5a7512e",
+            "end_to_end_identification" : "nmM6YPHYo",
+            "transaction_status" : "ACCC",
+            "tracker_informing_party" : "BANABEBBXXX",
+            "service_level" : "G007",
+            "instructed_amount" : {
+              "currency" : "USD",
+              "amount" : "1000.0"
+            },
+            "confirmed_amount" : {
+              "currency" : "USD",
+              "amount" : "970.0"
+            },
+            "interbank_settlement_date" : "2023-04-08",
+            "confirmed_date" : "2023-04-08T13:00:01.000Z",
+            "ultimate_debtor" : {
+              "name" : "debtor1"
+            },
+            "debtor" : {
+              "name" : "CorporateA"
+            },
+            "debtor_account" : {
+              "identification" : {
+                "iban" : "DG38E1HrEL6ToVxRv1ff1xUPb5KGEVD"
+              }
+            },
+            "creditor" : {
+              "any_bic" : "CORPBIC1XXX"
+            },
+            "creditor_account" : {
+              "identification" : {
+                "identification" : "Acct12DFDDR0499-33"
+              }
+            },
+            "ultimate_creditor" : {
+              "name" : "creditor1"
+            },
+            "creditor_agent" : "BANBFRPPXXX",
+            "purpose" : "IVPT",
+            "remittance_information" : {
+              "structured" : [ {
+                "creditor_reference_information" : {
+                  "type" : {
+                    "code_or_proprietary" : {
+                      "code" : "SCOR"
+                    }
+                  },
+                  "reference" : "110/1120/55090"
+                }
+              } ]
+            },
+            "payment_event" : [ {
+              "from" : "BANABEBBXXX",
+              "to" : "BANABEBBXXX",
+              "interbank_settlement_amount" : {
+                "currency" : "USD",
+                "amount" : "990.0"
+              },
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "10.0"
+              },
+              "processing_date_time" : "2023-04-08T14:00:01.000Z"
+            }, {
+              "from" : "BANBUS33XXX",
+              "to" : "BANBFRPPXXX",
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "20.0"
+              },
+              "processing_date_time" : "2023-04-08T12:00:01.000Z"
+            } ]
+          }, {
+            "uetr" : "33ed4827-7b6f-4491-a06f-b548d5a7512e",
+            "end_to_end_identification" : "payment1",
+            "transaction_status" : "ACCC",
+            "tracker_informing_party" : "BANABEBBXXX",
+            "service_level" : "G007",
+            "instructed_amount" : {
+              "currency" : "USD",
+              "amount" : "2000.0"
+            },
+            "confirmed_amount" : {
+              "currency" : "USD",
+              "amount" : "1970.0"
+            },
+            "interbank_settlement_date" : "2023-04-08",
+            "confirmed_date" : "2023-04-08T13:00:01.000Z",
+            "ultimate_debtor" : {
+              "name" : "debtor2"
+            },
+            "debtor" : {
+              "name" : "CorporateB"
+            },
+            "debtor_account" : {
+              "identification" : {
+                "iban" : "DG38E1Hrdfdqdf"
+              }
+            },
+            "creditor" : {
+              "any_bic" : "CORPBIC1XXX"
+            },
+            "creditor_account" : {
+              "identification" : {
+                "identification" : "Acct12DFDDR0499-33"
+              }
+            },
+            "creditor_agent" : "BANBFRPPXXX",
+            "purpose" : "INSU",
+            "remittance_information" : {
+              "structured" : [ {
+                "creditor_reference_information" : {
+                  "type" : {
+                    "code_or_proprietary" : {
+                      "code" : "SCOR"
+                    }
+                  },
+                  "reference" : "220/1440/59090"
+                }
+              } ]
+            },
+            "payment_event" : [ {
+              "from" : "BANABEBBXXX",
+              "to" : "BANABEBBXXX",
+              "interbank_settlement_amount" : {
+                "currency" : "USD",
+                "amount" : "1980.0"
+              },
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "20.0"
+              },
+              "processing_date_time" : "2023-04-08T14:00:01.000Z"
+            }, {
+              "from" : "BANBUS33XXX",
+              "to" : "BANBFRPPXXX",
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "10.0"
+              },
+              "processing_date_time" : "2023-04-08T12:00:01.000Z"
+            } ]
+          } ]
+        }
+      },
+      "outbound_corporate_payment_time_window_debtor_account_search_result" : {
+        "summary" : "outbound time window search result with Debtor Account",
+        "value" : {
+          "payment_transaction" : [ {
+            "uetr" : "97ed4827-7b6f-4491-a06f-b548d5a7512e",
+            "instruction_identification" : "dfljd",
+            "end_to_end_identification" : "nmM6YPHYo",
+            "transaction_status" : "ACCC",
+            "tracker_informing_party" : "BANABEBBXXX",
+            "service_level" : "G003",
+            "instructed_amount" : {
+              "currency" : "USD",
+              "amount" : "1000.0"
+            },
+            "confirmed_amount" : {
+              "currency" : "USD",
+              "amount" : "970.0"
+            },
+            "interbank_settlement_date" : "2023-04-08",
+            "confirmed_date" : "2023-04-08T13:00:01.000Z",
+            "ultimate_debtor" : {
+              "name" : "debtor1"
+            },
+            "debtor" : {
+              "any_bic" : "CORPBIC2XXX"
+            },
+            "debtor_account" : {
+              "identification" : {
+                "identification" : "Acctdfdf12DFdfdfDD-44"
+              }
+            },
+            "creditor" : {
+              "any_bic" : "CORPFRPPXXX"
+            },
+            "creditor_account" : {
+              "identification" : {
+                "iban" : "RS45NqW68X"
+              }
+            },
+            "ultimate_creditor" : {
+              "name" : "creditor1"
+            },
+            "creditor_agent" : "BANBFRPPXXX",
+            "purpose" : "IVPT",
+            "remittance_information" : {
+              "structured" : [ {
+                "creditor_reference_information" : {
+                  "type" : {
+                    "code_or_proprietary" : {
+                      "code" : "SCOR"
+                    }
+                  },
+                  "reference" : "110/1120/55090"
+                }
+              } ]
+            },
+            "payment_event" : [ {
+              "from" : "BANABEBBXXX",
+              "to" : "BANABEBBXXX",
+              "interbank_settlement_amount" : {
+                "currency" : "USD",
+                "amount" : "990.0"
+              },
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "10.0"
+              },
+              "processing_date_time" : "2023-04-08T14:00:01.000Z"
+            }, {
+              "from" : "BANBUS33XXX",
+              "to" : "BANBFRPPXXX",
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "20.0"
+              },
+              "processing_date_time" : "2023-04-08T12:00:01.000Z"
+            } ]
+          }, {
+            "uetr" : "33ed4827-7b6f-4491-a06f-b548d5a7512e",
+            "instruction_identification" : "ddfd",
+            "end_to_end_identification" : "payment1",
+            "transaction_status" : "ACCC",
+            "tracker_informing_party" : "BANABEBBXXX",
+            "service_level" : "G003",
+            "instructed_amount" : {
+              "currency" : "USD",
+              "amount" : "2000.0"
+            },
+            "confirmed_amount" : {
+              "currency" : "USD",
+              "amount" : "1970.0"
+            },
+            "interbank_settlement_date" : "2023-04-08",
+            "confirmed_date" : "2023-04-08T13:00:01.000Z",
+            "ultimate_debtor" : {
+              "name" : "debtor2"
+            },
+            "debtor" : {
+              "any_bic" : "CORPBIC2XXX"
+            },
+            "debtor_account" : {
+              "identification" : {
+                "identification" : "Acctdfdf12DFdfdfDD-44"
+              }
+            },
+            "creditor" : {
+              "any_bic" : "CORPFRPPXXX"
+            },
+            "creditor_account" : {
+              "identification" : {
+                "iban" : "RS45NqW68X"
+              }
+            },
+            "ultimate_creditor" : {
+              "name" : "creditor2"
+            },
+            "creditor_agent" : "BANBFRPPXXX",
+            "purpose" : "INSU",
+            "remittance_information" : {
+              "structured" : [ {
+                "creditor_reference_information" : {
+                  "type" : {
+                    "code_or_proprietary" : {
+                      "code" : "SCOR"
+                    }
+                  },
+                  "reference" : "220/1440/59090"
+                }
+              } ]
+            },
+            "payment_event" : [ {
+              "from" : "BANABEBBXXX",
+              "to" : "BANABEBBXXX",
+              "interbank_settlement_amount" : {
+                "currency" : "USD",
+                "amount" : "1980.0"
+              },
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "20.0"
+              },
+              "processing_date_time" : "2023-04-08T14:00:01.000Z"
+            }, {
+              "from" : "BANBUS33XXX",
+              "to" : "BANBFRPPXXX",
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "10.0"
+              },
+              "processing_date_time" : "2023-04-08T12:00:01.000Z"
+            } ]
+          } ]
+        }
+      },
+      "inbound_corporate_payment_time_window_event_statusACSP_search_result" : {
+        "summary" : "inbound time window search result with EventFilter and StatusFilter ACSP",
+        "value" : {
+          "payment_transaction" : [ {
+            "uetr" : "07211404-0a8d-4c60-9170-a9eacfaf7d66",
+            "end_to_end_identification" : "paymentinstruction1",
+            "transaction_status" : "ACSP",
+            "transaction_status_date" : "2024-01-02T12:00:01.000Z",
+            "transaction_status_reason" : "G005",
+            "tracker_informing_party" : "BANKCBICXXX",
+            "service_level" : "G007",
+            "instructed_amount" : {
+              "currency" : "USD",
+              "amount" : "1000"
+            },
+            "interbank_settlement_amount" : {
+              "currency" : "USD",
+              "amount" : "970"
+            },
+            "interbank_settlement_date" : "2024-01-02",
+            "debtor" : {
+              "name" : "corpA"
+            },
+            "debtor_account" : {
+              "identification" : {
+                "iban" : "DG38E1HrEL6ToVxRv1ff1xUPb5KGEVD"
+              }
+            },
+            "creditor" : {
+              "name" : "corpB"
+            },
+            "creditor_account" : {
+              "identification" : {
+                "identification" : "Acct1REE"
+              }
+            },
+            "creditor_agent" : "BANKCBICXXX",
+            "purpose" : "COMC",
+            "payment_event" : [ {
+              "from" : "BANKABICXXX",
+              "to" : "BANKBBICXXX",
+              "interbank_settlement_amount" : {
+                "currency" : "USD",
+                "amount" : "990.0"
+              },
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "10.0"
+              },
+              "processing_date_time" : "2024-01-02T12:00:00.000Z"
+            }, {
+              "from" : "BANKBBICXXX",
+              "to" : "BANKCBICXXX",
+              "interbank_settlement_amount" : {
+                "currency" : "USD",
+                "amount" : "970.0"
+              },
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "20.0"
+              },
+              "processing_date_time" : "2024-01-02T12:00:01.000Z"
+            } ]
+          } ]
+        }
+      },
+      "outbound_corporate_payment_time_window_event_statusRCVD_search_result" : {
+        "summary" : "outbound time window search result with EventFilter and StatusFilter RCVD",
+        "value" : {
+          "payment_transaction" : [ {
+            "uetr" : "07211404-0a8d-4c60-9170-a9eacfaf7d66",
+            "instruction_identification" : "payment54",
+            "end_to_end_identification" : "4949430",
+            "transaction_status" : "RCVD",
+            "transaction_status_date" : "2024-12-01T12:00:00.000Z",
+            "tracker_informing_party" : "BANKABICXXX",
+            "service_level" : "G003",
+            "equivalent_amount" : {
+              "amount" : {
+                "currency" : "GBP",
+                "amount" : "1000.0"
+              },
+              "currency_of_transfer" : "USD"
+            },
+            "requested_execution_date" : {
+              "date" : "2024-12-01"
+            },
+            "ultimate_debtor" : {
+              "name" : "SunnyFlowers"
+            },
+            "debtor" : {
+              "any_bic" : "DEBTBICXXXX"
+            },
+            "debtor_account" : {
+              "identification" : {
+                "identification" : "Acct123"
+              }
+            },
+            "creditor" : {
+              "name" : "CorpB"
+            },
+            "creditor_account" : {
+              "identification" : {
+                "identification" : "Acct456"
+              }
+            },
+            "ultimate_creditor" : {
+              "name" : "DutchFlowers"
+            },
+            "creditor_agent" : "BANKDBICXXX",
+            "purpose" : "DIVD",
+            "remittance_information" : {
+              "related" : [ {
+                "remittance_identification" : "email2024-12-01",
+                "remittance_location_details" : [ {
+                  "method" : "EMAL",
+                  "electronic_address" : "sunnyflowers@gmail.com"
+                } ]
+              } ]
+            },
+            "payment_event" : [ {
+              "from" : "DEBTBICXXXX",
+              "to" : "BANKABICXXX",
+              "processing_date_time" : "2024-12-01T12:00:00.000Z"
+            } ]
+          } ]
+        }
+      },
+      "inbound_corporate_payment_end_to_end_identification_search_result" : {
+        "summary" : "inbound end to end identification search result",
+        "value" : {
+          "payment_transaction" : [ {
+            "uetr" : "07211404-0a8d-4c60-9170-a9eacfaf7d66",
+            "end_to_end_identification" : "payment123",
+            "transaction_status" : "ACSP",
+            "transaction_status_date" : "2024-01-02T12:00:01.000Z",
+            "transaction_status_reason" : "G005",
+            "tracker_informing_party" : "BANKCBICXXX",
+            "service_level" : "G007",
+            "instructed_amount" : {
+              "currency" : "USD",
+              "amount" : "1000"
+            },
+            "interbank_settlement_amount" : {
+              "currency" : "USD",
+              "amount" : "970"
+            },
+            "interbank_settlement_date" : "2024-01-02",
+            "debtor" : {
+              "name" : "corpA"
+            },
+            "debtor_account" : {
+              "identification" : {
+                "iban" : "DG38E1HrEL6ToVxRv1ff1xUPb5KGEVD"
+              }
+            },
+            "creditor" : {
+              "name" : "corpB"
+            },
+            "creditor_account" : {
+              "identification" : {
+                "identification" : "Acct1REE"
+              }
+            },
+            "creditor_agent" : "BANKCBICXXX",
+            "purpose" : "COMC",
+            "payment_event" : [ {
+              "from" : "BANKABICXXX",
+              "to" : "BANKBBICXXX",
+              "interbank_settlement_amount" : {
+                "currency" : "USD",
+                "amount" : "990.0"
+              },
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "10.0"
+              },
+              "processing_date_time" : "2024-01-02T12:00:00.000Z"
+            }, {
+              "from" : "BANKBBICXXX",
+              "to" : "BANKCBICXXX",
+              "interbank_settlement_amount" : {
+                "currency" : "USD",
+                "amount" : "970.0"
+              },
+              "charge_bearer" : "CRED",
+              "charge_amount" : {
+                "currency" : "USD",
+                "amount" : "20.0"
+              },
+              "processing_date_time" : "2024-01-02T12:00:01.000Z"
+            } ]
+          } ]
+        }
+      },
+      "outbound_corporate_payment_end_to_end_identification_search_result" : {
+        "summary" : "outbound end to end identification search result",
+        "value" : {
+          "payment_transaction" : [ {
+            "uetr" : "07211404-0a8d-4c60-9170-a9eacfaf7d66",
+            "instruction_identification" : "payment54",
+            "end_to_end_identification" : "payment456",
+            "transaction_status" : "RCVD",
+            "transaction_status_date" : "2024-12-01T12:00:00.000Z",
+            "tracker_informing_party" : "BANKABICXXX",
+            "service_level" : "G003",
+            "equivalent_amount" : {
+              "amount" : {
+                "currency" : "GBP",
+                "amount" : "1000.0"
+              },
+              "currency_of_transfer" : "USD"
+            },
+            "requested_execution_date" : {
+              "date" : "2024-12-01"
+            },
+            "ultimate_debtor" : {
+              "name" : "SunnyFlowers"
+            },
+            "debtor" : {
+              "any_bic" : "DEBTBICXXXX"
+            },
+            "debtor_account" : {
+              "identification" : {
+                "identification" : "Acct123"
+              }
+            },
+            "creditor" : {
+              "name" : "CorpB"
+            },
+            "creditor_account" : {
+              "identification" : {
+                "identification" : "Acct456"
+              }
+            },
+            "ultimate_creditor" : {
+              "name" : "DutchFlowers"
+            },
+            "creditor_agent" : "BANKDBICXXX",
+            "purpose" : "DIVD",
+            "remittance_information" : {
+              "related" : [ {
+                "remittance_identification" : "email2024-12-01",
+                "remittance_location_details" : [ {
+                  "method" : "EMAL",
+                  "electronic_address" : "sunnyflowers@gmail.com"
+                } ]
+              } ]
+            },
+            "payment_event" : [ {
+              "from" : "DEBTBICXXXX",
+              "to" : "BANKABICXXX",
+              "processing_date_time" : "2024-12-01T12:00:00.000Z"
+            } ]
+          } ]
+        }
+      },
+      "outbound_corporate_payment_time_window_event_statusACSC_proof_of_debit_search_result" : {
+        "summary" : "outbound time window search result with EventFilter and StatusFilter ACSC including proof of debit",
+        "value" : {
+          "payment_transaction" : [ {
+            "uetr" : "07211404-0a8d-4c60-9170-a9eacfaf7d66",
+            "instruction_identification" : "paymentABC",
+            "end_to_end_identification" : "invoice1ERE",
+            "transaction_status" : "ACSC",
+            "transaction_status_date" : "2024-12-01T12:00:00.000Z",
+            "tracker_informing_party" : "BANKABICXXX",
+            "service_level" : "G003",
+            "instructed_amount" : {
+              "currency" : "USD",
+              "amount" : "1000.0"
+            },
+            "interbank_settlement_amount" : {
+              "currency" : "USD",
+              "amount" : "1000.0"
+            },
+            "interbank_settlement_date" : "2024-12-01",
+            "debtor" : {
+              "any_bic" : "CORPBIC1XXX"
+            },
+            "debtor_account" : {
+              "identification" : {
+                "identification" : "Acct1ERER"
+              }
+            },
+            "creditor" : {
+              "name" : "Flowershop"
+            },
+            "creditor_account" : {
+              "identification" : {
+                "identification" : "Acct4567"
+              }
+            },
+            "creditor_agent" : "BANKCBICXXX",
+            "debit_confirmation_url_address" : "http://www.example.com/index.html",
+            "payment_event" : [ {
+              "from" : "CORPBIC1XXX",
+              "to" : "BANKABICXXX",
+              "processing_date_time" : "2024-12-01T12:00:00.000Z"
+            }, {
+              "from" : "BANKABICXXX",
+              "to" : "BANKBBICXXX",
+              "interbank_settlement_amount" : {
+                "currency" : "USD",
+                "amount" : "1000.0"
+              },
+              "charge_bearer" : "DEBT",
+              "processing_date_time" : "2024-12-01T12:00:01.000Z"
+            } ]
+          } ]
+        }
+      }
+    },
+    "securitySchemes" : {
+      "oauthBearerToken" : {
+        "type" : "http",
+        "scheme" : "bearer",
+        "bearerFormat" : "opaque OAuth 2.0",
+        "description" : "\nThe access token obtained as a result of OAuth 2.0 flows. SWIFT supports two OAuth grant types depending on the API service.\n* JWT-Bearer grant type [RFC 7523](https://tools.ietf.org/html/rfc7523)\n* Password grant type\n\nThis API uses JWT-Bearer grant type.\n\nPlease visit [SWIFT OAuth Token API](https://developer.swift.com/swift-oauth-token-api) page for more information and examples on how to generate an OAuth token.\n  \nIn this declaration only the basic security element to transport the bearer token of an OAuth2 process is declared."
+      }
+    }
+  }
+}

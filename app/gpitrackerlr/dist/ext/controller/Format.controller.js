@@ -1,0 +1,2 @@
+sap.ui.define(["sap/ui/core/mvc/ControllerExtension"],function(e){"use strict";return e.extend("gpitrackerlr.ext.controller.Format",{override:{onInit:function(){},onAfterRendering:function(){this.oProcessFlow=this.base.getView().byId("gpitrackerlr::PaymentsObjectPage--fe::CustomSubSection::Payment_event_flow--_IDGenProcessFlow1");this.oProcessFlow.optimizeLayout(true);this.oProcessFlow.setZoomLevel(sap.suite.ui.commons.ProcessFlowZoomLevel.One)}},formatMyField:function(e){return e}})});
+//# sourceMappingURL=Format.controller.js.map

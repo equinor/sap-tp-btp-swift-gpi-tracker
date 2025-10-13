@@ -1,0 +1,226 @@
+_schema-version: 3.3.0
+ID: Swift_CAP_GPITracker
+description: A simple CAP project.
+version: 1.0.0
+modules:
+  - name: Swift_CAP_GPITracker-srv
+    type: nodejs
+    path: gen/srv
+    requires:
+      - name: SwiftGPITracker-auth
+      - name: SwiftGPITracker-connectivity
+      - name: Swift_CAP_GPITracker-destination-service
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    parameters:
+      buildpack: nodejs_buildpack
+      instances: 1
+    build-parameters:
+      builder: npm-ci
+  - name: Swift_CAP_GPITracker-app-content
+    type: com.sap.application.content
+    path: .
+    requires:
+      - name: Swift_CAP_GPITracker-repo-host
+        parameters:
+          content-target: true
+    build-parameters:
+      build-result: resources
+      requires:
+        - artifacts:
+            - gpitrackerlr.zip
+          name: gpitrackerlr
+          target-path: resources/
+  - name: gpitrackerlr
+    type: html5
+    path: app/gpitrackerlr
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+  - name: Swift_CAP_GPITracker-destination-content
+    type: com.sap.application.content
+    requires:
+      - name: Swift_CAP_GPITracker-destination-service
+        parameters:
+          content-target: true
+      - name: Swift_CAP_GPITracker-repo-host
+        parameters:
+          service-key:
+            name: Swift_CAP_GPITracker-repo-host-key
+      - name: SwiftGPITracker-auth
+        parameters:
+          service-key:
+            name: SwiftGPITracker-auth-key
+    parameters:
+      content:
+        instance:
+          destinations:
+            - Name: swiftgpi_Swift_CAP_GPITracker_repo_host
+              ServiceInstanceName: Swift_CAP_GPITracker-html5-service
+              ServiceKeyName: Swift_CAP_GPITracker-repo-host-key
+              sap.cloud.service: swiftgpi
+            - Authentication: OAuth2UserTokenExchange
+              Name: swiftgpi_SwiftGPITracker_auth
+              ServiceInstanceName: SwiftGPITracker-auth
+              ServiceKeyName: SwiftGPITracker-auth-key
+              sap.cloud.service: swiftgpi
+          existing_destinations_policy: ignore
+    build-parameters:
+      no-source: true
+
+  - name: SwiftGPITracker
+    type: approuter.nodejs
+    path: app/router
+    parameters:
+      keep-existing-routes: true
+      disk-quota: 256M
+      memory: 256M
+    requires:
+      - name: srv-api
+        group: destinations
+        properties:
+          name: srv-api # must be used in xs-app.json as well
+          url: ~{srv-url}
+          forwardAuthToken: true
+      - name: SwiftGPITracker-auth
+      - name: SwiftGPITracker-html5-runtime
+      - name: SwiftGPITracker-portal
+      - name: Swift_CAP_GPITracker-destination-service
+    provides:
+      - name: app-api
+        properties:
+          app-protocol: ${protocol}
+          app-uri: ${default-uri}
+
+  - name: SwiftGPITracker-app-deployer
+    type: com.sap.application.content
+    path: gen
+    requires:
+      - name: SwiftGPITracker-auth
+      - name: srv-api
+      - name: Swift_CAP_GPITracker-repo-host
+    build-parameters:
+      build-result: app/
+      requires:
+        - name: gpitrackerlr
+          artifacts:
+            - gpitrackerlr.zip
+          target-path: app/
+        - name: gpitrackerlr
+    parameters:
+      config:
+        HTML5Runtime_enabled: true
+        init_data:
+          instance:
+            existing_destinations_policy: update
+            destinations:
+              - Name: srv-api
+                URL: ~{srv-api/srv-url}
+                Authentication: NoAuthentication
+                Type: HTTP
+                ProxyType: Internet
+                HTML5.ForwardAuthToken: true
+                HTML5.DynamicDestination: true
+              - Name: ui5
+                URL: https://ui5.sap.com
+                Authentication: NoAuthentication
+                Type: HTTP
+                ProxyType: Internet
+
+  - name: SwiftGPITracker-portal-deployer
+    type: com.sap.application.content
+    path: app/portal
+    requires:
+      - name: SwiftGPITracker-portal
+        parameters:
+          content-target: true
+          service-key:
+            name: SwiftGPITracker-portal-key
+            config:
+              content-endpoint: developer
+      - name: SwiftGPITracker-auth
+      - name: SwiftGPITracker-app-deployer
+      - name: Swift_CAP_GPITracker-repo-host
+    deployed-after:
+      - SwiftGPITracker-app-deployer
+resources:
+  - name: Swift_CAP_GPITracker-repo-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-name: Swift_CAP_GPITracker-html5-service
+      service-plan: app-host
+  - name: Swift_CAP_GPITracker-destination-service
+    type: org.cloudfoundry.managed-service
+    parameters:
+      config:
+        HTML5Runtime_enabled: true
+        version: 1.0.0
+        init_data:
+          instance:
+            existing_destinations_policy: update
+            destinations:
+              - Name: srv-api
+                URL: ~{srv-api/srv-url}
+                Authentication: NoAuthentication
+                Type: HTTP
+                ProxyType: Internet
+                HTML5.ForwardAuthToken: true
+                HTML5.DynamicDestination: true
+      service: destination
+      service-name: Swift_CAP_GPITracker-destination-service
+      service-plan: lite
+    requires:
+      - name: srv-api
+        group: destinations
+        properties:
+          name: srv-api # must be used in xs-app.json as well
+          url: ~{srv-url}
+          forwardAuthToken: true
+  - name: SwiftGPITracker-auth
+    type: org.cloudfoundry.managed-service
+    parameters:
+      config:
+        tenant-mode: dedicated
+        xsappname: SwiftGPITracker-f-c
+        oauth2-configuration:
+          redirect-uris:
+            - https://*~{app-api/app-uri}/**
+      path: ./xs-security.json
+      service: xsuaa
+      service-plan: application
+    requires:
+      - name: app-api
+  - name: SwiftGPITracker-connectivity
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: connectivity
+      service-plan: lite
+  - name: SwiftGPITracker-html5-runtime
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-runtime
+  - name: SwiftGPITracker-portal
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: build-workzone-standard
+      service-plan: foundation
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production

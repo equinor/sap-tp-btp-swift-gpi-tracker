@@ -1,0 +1,408 @@
+{
+  "_version": "1.76.0",
+  "sap.app": {
+    "id": "gpitrackerlr",
+    "type": "application",
+    "i18n": {
+      "bundleUrl": "i18n/i18n.properties",
+      "supportedLocales": [
+        ""
+      ]
+    },
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:lrop",
+      "version": "1.18.7",
+      "toolsId": "e0973b2d-1254-4a30-acc7-0db3477cb322"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/odata/v4/my/",
+        "type": "OData",
+        "settings": {
+          "annotations": [],
+          "odataVersion": "4.0"
+        }
+      }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "GPI-tracker": {
+          "semanticObject": "GPI",
+          "action": "tracker",
+          "title": "{{GPI-tracker.flpTitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "dependencies": {
+      "minUI5Version": "1.140.0",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.fe.templates": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "gpitrackerlr.i18n.i18n",
+          "supportedLocales": [
+            ""
+          ]
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {
+          "operationMode": "Server",
+          "autoExpandSelect": true,
+          "earlyRequests": true
+        }
+      },
+      "@i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "uri": "i18n/i18n.properties",
+        "settings": {
+          "supportedLocales": [
+            ""
+          ]
+        }
+      }
+    },
+    "resources": {
+      "css": []
+    },
+    "routing": {
+      "config": {},
+      "routes": [
+        {
+          "pattern": ":?query:",
+          "name": "PaymentsList",
+          "target": [
+            "PaymentsList"
+          ]
+        },
+        {
+          "pattern": "Payments({key}):?query:",
+          "name": "PaymentsObjectPage",
+          "target": [
+            "PaymentsList",
+            "PaymentsObjectPage"
+          ]
+        }
+      ],
+      "targets": {
+        "PaymentsList": {
+          "type": "Component",
+          "id": "PaymentsList",
+          "name": "sap.fe.templates.ListReport",
+          "options": {
+            "settings": {
+              "contextPath": "/Payments",
+              "variantManagement": "Page",
+              "navigation": {
+                "Payments": {
+                  "detail": {
+                    "route": "PaymentsObjectPage"
+                  }
+                }
+              },
+              "controlConfiguration": {
+                "@com.sap.vocabularies.UI.v1.LineItem": {
+                  "tableSettings": {
+                    "type": "ResponsiveTable"
+                  }
+                },
+                "@com.sap.vocabularies.UI.v1.SelectionFields": {
+                  "filterFields": {
+                    "PaymentDate": {
+                      "settings": {
+                        "defaultValues": [
+                          {
+                            "operator": "TODAYFROMTO",
+                            "values": [
+                              6,
+                              0
+                            ]
+                          }
+                        ],
+                        "operatorConfiguration": [
+                          {
+                            "path": "key",
+                            "equals": "DATE",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "LASTDAYS",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "LAST",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "TO",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "FROM",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "DATERANGE",
+                            "exclude": false
+                          },
+                          {
+                            "path": "key",
+                            "equals": "YESTERDAY",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "TOMORROW",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "THISWEEK",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "NEXTDAYS",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "LASTWEEK",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "LASTWEEKS",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "NEXTWEEK",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "NEXTWEEKS",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "SPECIFICMONTH",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "THISMONTH",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "LASTMONTH",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "LASTMONTHS",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "NEXTMONTH",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "NEXTMONTHS",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "THISQUARTER",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "LASTQUARTER",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "LASTQUARTERS",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "NEXTQUARTER",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "NEXTQUARTERS",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "QUARTER1",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "QUARTER2",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "QUARTER3",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "QUARTER4",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "THISYEAR",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "LASTYEAR",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "LASTYEARS",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "NEXTYEAR",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "NEXTYEARS",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "YEARTODATE",
+                            "exclude": true
+                          },
+                          {
+                            "path": "key",
+                            "equals": "DATETOYEAR",
+                            "exclude": true
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "PaymentsObjectPage": {
+          "type": "Component",
+          "id": "PaymentsObjectPage",
+          "name": "sap.fe.templates.ObjectPage",
+          "options": {
+            "settings": {
+              "editableHeaderContent": false,
+              "contextPath": "/Payments",
+              "content": {
+                "body": {
+                  "sections": {
+                    "Payment_event_flow": {
+                      "template": "gpitrackerlr.ext.fragment.Payment_event_flow",
+                      "position": {
+                        "placement": "Before",
+                        "anchor": "Paymentevents"
+                      },
+                      "title": "Payment flow"
+                    }
+                  }
+                }
+              },
+              "controlConfiguration": {
+                "payment_event/@com.sap.vocabularies.UI.v1.LineItem#Paymentevents1": {
+                  "tableSettings": {
+                    "enableFullScreen": true,
+                    "type": "GridTable",
+                    "condensedTableLayout": true
+                  }
+                }
+              },
+              "sectionLayout": "Page"
+            }
+          }
+        }
+      }
+    },
+    "extends": {
+      "extensions": {
+        "sap.ui.controllerExtensions": {
+          "sap.fe.templates.ObjectPage.ObjectPageController": {
+            "controllerName": "gpitrackerlr.ext.controller.Format"
+          }
+        }
+      }
+    }
+  },
+  "sap.fiori": {
+    "registrationIds": [],
+    "archeType": "transactional"
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "SwiftGPITracker.service"
+  }
+}
