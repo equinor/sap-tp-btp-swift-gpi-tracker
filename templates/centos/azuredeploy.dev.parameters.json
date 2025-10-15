@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": {
+      "value": "sampleadmin"
+    },    
+    "adminPubKey": {
+      "value": "GENERATED"
+    },
+    "imagePublisher": {
+      "value": "OpenLogic"
+    },
+    "imageOffer": {
+      "value": "CentOS-LVM"
+    },
+    "imageSku": {
+      "value": "8-lvm"
+    },
+    "imageVersion": {
+      "value": "latest"
+    },
+    "networkSecurityGroupName": {
+      "value": "centos-nsg-dev"
+    },
+    "vmNames": {
+      "value": [
+        "S013-centos1-dev",
+        "S013-centos2-dev"
+      ]
+    },
+    "avSetName" : {
+      "value" : "centos-avs-dev"
+    },
+    "ilbName": {
+      "value" : "centos-dev"
+    },
+    "vmSize": {
+      "value": "Standard_B1ms"
+    },
+    "virtualNetworkName": {
+      "value": "S013-NOE-vnet"
+    },
+    "subnetName": {
+      "value": "S013-NOE-subnet"
+    },
+    "networkResourceGroupName": {
+      "value": "S013-NOE-network"
+    }
+  }
+}

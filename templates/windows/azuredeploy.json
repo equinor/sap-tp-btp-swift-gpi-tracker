@@ -1,0 +1,244 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Local admin user name for the Virtual Machine."
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Local admin password for the Virtual Machine."
+      }
+    },
+    "acceleratedNetworking": {
+      "type": "bool",
+      "metadata": {
+        "description": "Enable/Disable accelerated networking. Enabling accelerated networking limits the available VM SKUs"
+      },
+      "defaultValue": false
+    },
+    "windowsOSVersion": {
+      "type": "string",
+      "defaultValue": "2016-Datacenter",
+      "allowedValues": [
+        "2016-Datacenter",
+        "2019-Datacenter"
+      ],
+      "metadata": {
+        "description": "The Windows version for the VM."
+      }
+    },
+    "imageVersion": {
+      "type": "string",
+      "defaultValue": "latest"
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_B1ms",
+      "metadata": {
+        "description": "Size of the virtual machine."
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    },
+    "vmName": {
+      "type": "String"     
+    },
+    "virtualNetworkName": {
+      "type": "String"
+    },
+    "subnetName": {
+      "type": "String"
+    },
+    "networkSecurityGroupName": {      
+      "type": "String",
+      "metadata": {
+        "description": "Name of the NSG that will be created and attached to the NIC"
+      }
+    },
+    "networkResourceGroupName": {
+      "type": "String",
+      "metadata": {
+        "description": "Name of the resource group that contains the vnet and subnet"
+      }
+    },
+    "domainJoinUserName": {
+      "type": "string",
+      "defaultValue": "not used",
+      "metadata": {
+        "description": "Domain name plus user name of a domain user with sufficient rights to perfom domain join operation. E.g. domain\\username"
+      }
+    },
+    "ouPath": {
+      "type": "string",
+      "defaultValue": "not used",
+      "metadata": {
+        "description": "Example: OU=S013,OU=Omnia Classic,OU=Cloud Servers,OU=Servers,DC=statoil,DC=net"
+      }
+    },
+    "domainJoinOptions": {
+      "type": "int",
+      "defaultValue": 3,
+      "metadata": {
+        "description": "https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/joindomainorworkgroup-method-in-class-win32-computersystem?redirectedfrom=MSDN"
+      }
+    },
+    "domainJoinUserPassword": {
+      "type": "securestring",
+      "defaultValue": "SECURE",
+      "metadata": {
+        "description": "Domain user password"
+      }
+    },
+    "joinDomain": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Join the statoil-net domain if true"
+      }
+    }
+  },
+  "variables": {
+    "nicName": "[concat(parameters('vmName'), 'nic')]", 
+    "subnetRef" : "[concat(resourceId(parameters('networkResourceGroupName'),'Microsoft.Network/virtualNetworks',parameters('virtualNetworkName')),'/subnets/',parameters('subnetName'))]"
+  },
+  "resources": [
+    {
+      "comments":  "Default Network Security Group for template",
+      "type":  "Microsoft.Network/networkSecurityGroups",
+      "apiVersion":  "2019-08-01",
+      "name":  "[parameters('networkSecurityGroupName')]",
+      "location":  "[parameters('location')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name":  "default-allow-3389",
+            "properties": {
+              "priority":  1000,
+              "access":  "Allow",
+              "direction":  "Inbound",
+              "destinationPortRange":  "3389",
+              "protocol":  "Tcp",
+              "sourcePortRange":  "*",
+              "sourceAddressPrefix":  "*",
+              "destinationAddressPrefix":  "*"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('nicName')]",
+      "apiVersion": "2019-11-01",
+      "location": "[parameters('location')]", 
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups',parameters('networkSecurityGroupName'))]"
+      ],     
+      "properties": {
+        "primary": true,
+        "enableAcceleratedNetworking": "[parameters('acceleratedNetworking')]",
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              }
+            }
+          }
+        ],
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups',parameters('networkSecurityGroupName'))]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2018-10-01",
+      "name": "[parameters('vmName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+      ],
+      "properties": {
+        
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('vmName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "windowsConfiguration": {
+            "timeZone": "W. Europe Standard Time"
+          }
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "[parameters('windowsOSVersion')]",
+            "version": "[parameters('imageVersion')]"
+          },
+          "osDisk": {
+            "createOption": "FromImage"
+          },
+          "dataDisks": [
+            {
+              "diskSizeGB": 1023,
+              "lun": 0,
+              "createOption": "Empty"
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "comments": "Join domain - JsonADDomainExtension",
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "condition": "[parameters('joinDomain')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]"
+      ],
+      "name": "[concat(trim(parameters('vmName')),'/joindomain')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "JsonADDomainExtension",
+        "typeHandlerVersion": "1.3",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "Name": "statoil.net",
+          "User": "[parameters('domainJoinUserName')]",
+          "Restart": "true",
+          "Options": "[parameters('domainJoinOptions')]",
+          "OUPath": "[parameters('ouPath')]"
+        },
+        "protectedSettings": {
+          "Password": "[parameters('domainJoinUserPassword')]"
+        }
+      }
+    }
+  ],
+  "outputs": {
+  }
+}

@@ -1,0 +1,51 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "privateDnsZoneName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the DNS Zone, e.g. S013.oc.equinor.com"
+            }
+        },
+        "recordName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the DNS record, e.g. myapploadbalancer"
+            }
+        },
+        "ttl": {
+            "type": "int",
+            "defaultValue": 300,
+            "metadata": {
+                "description": "Time to live"
+            }
+        },
+        "ipv4": {
+            "type": "string",
+            "metadata": {
+                "description": "IP Address"
+            }
+        }
+
+    },
+    "functions": [],
+    "variables": {},
+    "resources": [
+        {
+            "name": "[concat(parameters('privateDnsZoneName'), '/', parameters('recordName'))]",
+            "type": "Microsoft.Network/privateDnsZones/A",
+            "apiVersion": "2020-06-01",
+            "properties": {
+                "metadata": {},
+                "ttl": "[parameters('ttl')]",
+                "aRecords": [
+                    {
+                        "ipv4Address": "[parameters('ipv4')]"
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {}
+}

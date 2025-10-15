@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": {
+      "value": "adminsample"
+    },    
+    "adminPassword": {
+      "value": "GENERATED"
+    },
+    "imageVersion": {
+      "value": "latest"
+    },
+    "networkSecurityGroupName": {
+      "value": "winsamplensg"
+    },
+    "vmName": {
+      "value": "S013-win03-dev"
+    },    
+    "vmSize": {
+      "value": "Standard_B1ms"
+    },
+    "windowsOSVersion": {
+      "value": "2019-Datacenter"
+    },
+    "virtualNetworkName": {
+      "value": "S013-NOE-vnet"
+    },
+    "subnetName": {
+      "value": "S013-NOE-subnet"
+    },
+    "networkResourceGroupName": {
+      "value": "S013-NOE-network"
+    },
+    "joinDomain": {
+      "value": true
+    }
+  }
+}
