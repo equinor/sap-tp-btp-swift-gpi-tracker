@@ -1,21 +1,42 @@
 {
-  "xsappname": "swift_cap_gpitracker",
-  "tenant-mode": "dedicated",
-  "description": "Security profile of called application",
   "scopes": [
     {
-      "name": "uaa.user",
-      "description": "UAA"
+      "name": "$XSAPPNAME.SwiftGPIUser",
+      "description": "SwiftGPIUser"
+    }
+  ],
+  "attributes": [
+    {
+      "name": "service_level",
+      "description": "service_level",
+      "valueType": "s",
+      "valueRequired": true
+    },
+    {
+      "name": "bic",
+      "description": "BIC",
+      "valueType": "s",
+      "valueRequired": true
     }
   ],
   "role-templates": [
     {
-      "name": "Token_Exchange",
-      "description": "UAA",
+      "name": "SwiftGPIUser",
+      "description": "generated",
       "scope-references": [
-        "uaa.user"
+        "$XSAPPNAME.SwiftGPIUser"
+      ],
+      "attribute-references": []
+    },
+    {
+      "name": "userattributes",
+      "description": "generated",
+      "default-role-name": "Attributes of a User",
+      "scope-references": [],
+      "attribute-references": [
+        "service_level",
+        "bic"
       ]
     }
-  ],
-  "attributes": []
+  ]
 }

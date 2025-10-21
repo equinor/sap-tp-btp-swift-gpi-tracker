@@ -2,7 +2,7 @@ namespace GPI;
 
 using {gpi.for.Corporates_types as payment} from './external/SWIFT-API-gpi-corporate_api-7.0.3-swagger';
 
-service MyService {
+service MyService  @(requires: 'SwiftGPIUser'){
 
   type ActiveCurrencyAndAmount {
     currency : payment.ActiveCurrencyCode;
@@ -52,7 +52,11 @@ service MyService {
     InsertRestrictions.Insertable: false
   }
 
-  entity Payments {
+  @readonly entity Payments @(restrict: [
+     { grant: 'READ',
+       to: ['SwiftGPIUser'],
+       where: ($user.service_level = service_level and 
+               $user.bic = bic  ) } ]) {
         @Common.Label: 'BIC'
     key bic                              : String;
 
@@ -150,26 +154,26 @@ service MyService {
         transaction_status_criticality   : Int16;
   }
 
-  entity BICValuehelp {
+  @readonly entity BICValuehelp {
     key bic  : String;
         name : String;
   }
 
-  entity TransactionStatusVH {
+  @readonly entity TransactionStatusVH {
         @Common.Label: 'Transaction status'
         @Common.ValueListWithFixedValues
     key transaction_status : payment.TransactionIndividualStatus10Code;
         text               : String;
   }
 
-  entity ServiceLevelVH {
+  @readonly entity ServiceLevelVH {
         @Common.Label: 'Service level'
         @Common.ValueListWithFixedValues
     key service_level : payment.ServiceLevel5Code;
         text          : String;
   }
 
-  entity PaymentEvents {
+  @readonly entity PaymentEvents {
         @UI.hidden   : true
     key uetr                        : payment.UUIDv4Identifier;
 
@@ -219,7 +223,7 @@ service MyService {
         to_name                     : String;
   }
 
-  entity PaymentEventProcessFlowNodes {
+  @readonly entity PaymentEventProcessFlowNodes {
     key id                          : payment.AnyBICDec2014Identifier;
     key laneId                      : payment.Max35Text;
         uetr                        : payment.UUIDv4Identifier;
@@ -252,7 +256,7 @@ service MyService {
                                         on groups.parent = $self;
   }
 
-  entity PaymentEventProcessFlowLanes {
+  @readonly entity PaymentEventProcessFlowLanes {
     key laneId        : payment.Max35Text;
         uetr          : payment.UUIDv4Identifier;
 
@@ -263,24 +267,24 @@ service MyService {
         position      : Integer;
   }
 
-  entity ChildNodes {
+  @readonly entity ChildNodes {
     key id     : payment.Max35Text;
         parent : Association to one PaymentEventProcessFlowNodes;
   }
 
-  entity NodeTexts {
+  @readonly entity NodeTexts {
     key texts  : payment.Max450Text;
         parent : Association to one PaymentEventProcessFlowNodes;
   }
 
-  entity QuickViewGroups {
+  @readonly entity QuickViewGroups {
     key heading  : String;
         elements : Composition of many QuickViewElements
                      on elements.parent = $self;
         parent   : Association to one PaymentEventProcessFlowNodes;
   }
 
-  entity QuickViewElements {
+  @readonly entity QuickViewElements {
     key element     : payment.Max450Text;
         label       : String;
         value       : String;
