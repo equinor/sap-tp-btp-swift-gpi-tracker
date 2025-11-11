@@ -10,20 +10,15 @@ annotate GPI.MyService.Payments with @(
                 Value: end_to_end_identification,
             },
             {
-                $Type: 'UI.DataField',
-                Label: 'Transaction status',
-                Value: transaction_status,
+                $Type      : 'UI.DataField',
+                Label      : 'Transaction status',
+                Value      : transaction_status,
                 Criticality: transaction_status_criticality
             },
             {
                 $Type: 'UI.DataField',
                 Label: 'Transaction status reason',
                 Value: transaction_status_reason,
-            },
-            {
-                $Type: 'UI.DataField',
-                Label: 'Rejection return reason',
-                Value: reject_return_reason,
             },
             {
                 $Type: 'UI.DataField',
@@ -50,6 +45,14 @@ annotate GPI.MyService.Payments with @(
                 $Type: 'UI.DataField',
                 Label: 'Previously confirmed amount',
                 Value: previously_confirmed_amount_amount,
+            },
+            {
+                $Type: 'UI.DataField',
+                Value: equivalent_amount_amount,
+            },
+            {
+                $Type: 'UI.DataField',
+                Value: equivalent_amount_currency_of_transfer,
             },
             {
                 $Type: 'UI.DataField',
@@ -98,6 +101,16 @@ annotate GPI.MyService.Payments with @(
             },
             {
                 $Type: 'UI.DataField',
+                Label: 'Debtor IBAN',
+                Value: debtor_account_iban,
+            },
+            {
+                $Type: 'UI.DataField',
+                Label: 'Creditor IBAN',
+                Value: creditor_account_iban,
+            },
+            {
+                $Type: 'UI.DataField',
                 Label: 'Creditor agent',
                 Value: creditor_agent,
             },
@@ -111,32 +124,46 @@ annotate GPI.MyService.Payments with @(
                 Label: 'Debit Confirmation URL',
                 Value: debit_confirmation_url_address,
             },
+            {
+                $Type: 'UI.DataField',
+                Label: 'Unstructured remittance info',
+                Value: remittance_information_unstructured,
+            },
         ],
     },
     UI.FieldGroup #status        : {
         $Type: 'UI.FieldGroupType',
-        Data : [{
-            $Type: 'UI.DataField',
-            Label: '',
-            Value: transaction_status,
-            Criticality : transaction_status_criticality,
-        }]
-    },
-    UI.FieldGroup #amount       : {
-        $Type: 'UI.FieldGroupType',
-        Data : [{
-            $Type: 'UI.DataField',
-            Label: 'Instructed amount',
-            Value: instructed_amount_amount,
-        },
-        {
-            $Type: 'UI.DataField',
-            Label: 'Confirmed amount',
-            Value: confirmed_amount_amount,
-        },
+        Data : [
+            {
+                $Type      : 'UI.DataField',
+                Label      : '',
+                Value      : transaction_status,
+                Criticality: transaction_status_criticality,
+            },
+            {
+                $Type        : 'UI.DataField',
+                Label        : '',
+                Value        : reject_return_reason,
+                ![@UI.Hidden]: reject_reason_visibility
+            }
         ]
     },
-    UI.FieldGroup #date: {
+    UI.FieldGroup #amount        : {
+        $Type: 'UI.FieldGroupType',
+        Data : [
+            {
+                $Type: 'UI.DataField',
+                Label: 'Instructed amount',
+                Value: instructed_amount_amount,
+            },
+            {
+                $Type: 'UI.DataField',
+                Label: 'Confirmed amount',
+                Value: confirmed_amount_amount,
+            }
+        ]
+    },
+    UI.FieldGroup #date          : {
         $Type: 'UI.FieldGroupType',
         Data : [{
             $Type: 'UI.DataField',
@@ -144,7 +171,7 @@ annotate GPI.MyService.Payments with @(
             Value: transaction_status_date
         }]
     },
-    UI.FieldGroup #trackingref: {
+    UI.FieldGroup #trackingref   : {
         $Type: 'UI.FieldGroupType',
         Data : [{
             $Type: 'UI.DataField',
@@ -152,7 +179,7 @@ annotate GPI.MyService.Payments with @(
             Value: uetr
         }]
     },
-    UI.FieldGroup #instruciden: {
+    UI.FieldGroup #instruciden   : {
         $Type: 'UI.FieldGroupType',
         Data : [{
             $Type: 'UI.DataField',
@@ -160,20 +187,18 @@ annotate GPI.MyService.Payments with @(
             Value: instruction_identification
         }]
     },
-    UI.Facets                    : [     
+    UI.Facets                    : [
         {
             $Type : 'UI.ReferenceFacet',
             Label : 'Payment events',
             ID    : 'Paymentevents',
-            Target: 'payment_event/@UI.LineItem#Paymentevents1',
-            position : 1
+            Target: 'payment_event/@UI.LineItem#Paymentevents1'
         },
         {
             $Type : 'UI.ReferenceFacet',
             ID    : 'GeneratedFacet1',
             Label : 'General Information',
-            Target: '@UI.FieldGroup#GeneratedGroup',
-            position: 2
+            Target: '@UI.FieldGroup#GeneratedGroup'
         }
     ],
     UI.HeaderFacets              : [
@@ -222,7 +247,7 @@ annotate GPI.MyService.Payments with @(
             Value: ''
         }
     },
-    UI.LineItem                : [
+    UI.LineItem                  : [
         {
             $Type: 'UI.DataField',
             Label: 'UETR',
@@ -239,10 +264,10 @@ annotate GPI.MyService.Payments with @(
             Value: end_to_end_identification,
         },
         {
-            $Type: 'UI.DataField',
-            Label: 'Transaction status',
-            Value: transaction_status,
-            Criticality : transaction_status_criticality,
+            $Type      : 'UI.DataField',
+            Label      : 'Transaction status',
+            Value      : transaction_status,
+            Criticality: transaction_status_criticality,
         },
         {
             $Type: 'UI.DataField',
@@ -250,20 +275,63 @@ annotate GPI.MyService.Payments with @(
             Value: transaction_status_date,
         },
         {
-            $Type: 'UI.DataField',
-            Label: 'Transaction status reason',
-            Value: transaction_status_reason,
+            Value        : instructed_amount_currency,
+            ![@UI.Hidden]: true
+        },
+        {
+            Value        : confirmed_amount_currency,
+            ![@UI.Hidden]: true
+        },
+        {
+            Value        : equivalent_amount_currency,
+            ![@UI.Hidden]: true
+        },
+        {
+            Value        : transaction_status_criticality,
+            ![@UI.Hidden]: true
+        },
+        {
+            Value        : reject_reason_code_text,
+            ![@UI.Hidden]: true
+        },
+        {
+            Value        : transaction_status_text,
+            ![@UI.Hidden]: true
+        },
+        {
+            Value        : transaction_status_reason_text,
+            ![@UI.Hidden]: true
+        },
+        {
+            Value        : previously_confirmed_amount_currency,
+            ![@UI.Hidden]: true
+        },
+        {
+            Value        : remaining_to_be_confirmed_amount_currency,
+            ![@UI.Hidden]: true
+        },
+        {
+            Value        : debtor_filter,
+            ![@UI.Hidden]: true
+        },
+        {
+            Value        : creditor_filter,
+            ![@UI.Hidden]: true
         }
 
+
     ],
-    UI.v1.SelectionFields        : [ PaymentDate ],
-    UI.SelectionFields         : [ 
+    UI.v1.SelectionFields        : [PaymentDate],
+    UI.SelectionFields           : [
         uetr,
         end_to_end_identification,
         bic,
         service_level,
         transaction_status,
-    ]
+        debtor_any_bic,
+        creditor_any_bic
+    ],
+
 );
 
 annotate GPI.MyService.Payments with {
@@ -317,9 +385,10 @@ annotate GPI.MyService.Payments with {
             }
         ]
     });
-
-    PaymentDate @Common.Label: 'Payment Date';
+    PaymentDate        @Common.Label: 'Payment Date';
 };
+
+annotate GPI.MyService.PaymentEvents with @Capabilities: {SearchRestrictions: {Searchable: false}};
 
 annotate GPI.MyService.PaymentEvents with @(UI.LineItem #Paymentevents1: [
     {
@@ -347,6 +416,37 @@ annotate GPI.MyService.PaymentEvents with @(UI.LineItem #Paymentevents1: [
         Value: charge_bearer,
         Label: 'Sender deducts',
     },
+    {
+        Value        : bic,
+        ![@UI.Hidden]: true
+    },
+    {
+        Value        : service_level,
+        ![@UI.Hidden]: true
+    },
+    {
+        Value        : uetr,
+        ![@UI.Hidden]: true
+    },
+    {
+        Value        : from_name,
+        ![@UI.Hidden]: true
+    },
+    {
+        Value        : to_name,
+        ![@UI.Hidden]: true
+    },
+    {
+        Value        : charge_bearer_text,
+        ![@UI.Hidden]: true
+    },
+    {
+        Value        : charge_amount_currency,
+        ![@UI.Hidden]: true
+    },
+    {
+        Value        : interbank_settlement_amount_currency,
+        ![@UI.Hidden]: true
+    }
 
-]
-)
+])
