@@ -92,11 +92,11 @@ module.exports = async function () {
       Payments = Paymentslistcache;
     }
     else {
-      if (filters !== undefined) {
-        filterscache = filters;
+      if (filters !== undefined) {       
         const parsed = parseFilters(req, filters);
         try {
           Payments = await fetchPayments(ext, filters, parsed, req);
+          filterscache = filters;
         } catch (error) {
           const status = error.reason?.response?.status || error.statusCode;
           if (status === 401) {
@@ -104,14 +104,17 @@ module.exports = async function () {
             try {
               ext = await cds.connect.to('Swift_CAP_GPITracker');
               Payments = await fetchPayments(ext, filters, parsed, req);
+              filterscache = filters;             
             }
             catch (error) {
               var errormsg = "Error retrieving data";
+              Paymentslistcache = [];
               req.error(400, errormsg);
             }
           }
           else {
             var errormsg = "Error receiving payments: " + error.message;
+            Paymentslistcache = [];
             req.error(400, errormsg);
           }
         }
