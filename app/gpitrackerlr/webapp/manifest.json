@@ -343,7 +343,7 @@
           "name": "sap.fe.templates.ObjectPage",
           "options": {
             "settings": {
-              "variantManagement": "Control", 
+              "variantManagement": "Control",
               "editableHeaderContent": false,
               "contextPath": "/Payments",
               "content": {
@@ -360,7 +360,7 @@
                   }
                 }
               },
-              "controlConfiguration": {     
+              "controlConfiguration": {
                 "payment_event/@com.sap.vocabularies.UI.v1.LineItem#Paymentevents1": {
                   "tableSettings": {
                     "enableFullScreen": true,
@@ -386,7 +386,10 @@
         "sap.ui.controllerExtensions": {
           "sap.fe.templates.ObjectPage.ObjectPageController": {
             "controllerName": "gpitrackerlr.ext.controller.Format"
-          }
+          },
+          	"sap.fe.templates.ListReport.ListReportController": {
+						"controllerName": "gpitrackerlr.ext.controller.ListCustom"
+					}
         }
       }
     }

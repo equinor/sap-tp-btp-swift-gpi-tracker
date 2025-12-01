@@ -9,13 +9,14 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 			 * Can be used to modify the View before it is displayed, to bind event handlers and do other one-time initialization.
 			 * @memberOf gpitrackerlr.ext.controller.Format
 			 */
-			onInit: function () {	
-			},
+			onInit: function () {
+				},
 			onBeforeRendering: function () {
 				this.oProcessFlow = this.base.getView().byId("gpitrackerlr::PaymentsObjectPage--fe::CustomSubSection::Payment_event_flow--_IDGenProcessFlow1");
 				this.oProcessFlow.optimizeLayout(true);
 				this.oProcessFlow.setZoomLevel(sap.suite.ui.commons.ProcessFlowZoomLevel.One);
 			}
+
 		},
 
 		formatMyField: function (val) {

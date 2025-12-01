@@ -399,6 +399,9 @@
         "sap.ui.controllerExtensions": {
           "sap.fe.templates.ObjectPage.ObjectPageController": {
             "controllerName": "gpitrackerlr.ext.controller.Format"
+          },
+          "sap.fe.templates.ListReport.ListReportController": {
+            "controllerName": "gpitrackerlr.ext.controller.ListCustom"
           }
         }
       }

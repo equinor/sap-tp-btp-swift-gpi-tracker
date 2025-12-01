@@ -1,0 +1,2 @@
+sap.ui.define(["sap/ui/core/mvc/ControllerExtension"],function(e){"use strict";return e.extend("gpitrackerlr.ext.controller.ListCustom",{override:{onBeforeRendering:function(){let e={model:this.base.editFlow.getView().getModel(),invocationGrouping:true};this.base.editFlow.invokeAction("refreshdata",e).then(function(){})}}})});
+//# sourceMappingURL=ListCustom.controller.js.map

@@ -3,7 +3,6 @@ var Paymentsdata;
 var Paymentslistcache = [];
 var Paymentslistresponse = [];
 var filterscache = [];
-var bankBICscache = [];
 
 const transaction_status_texts = [
   { "transaction_status": "ACCC", "text": "Settled to creditor's account", "criticality": 3 },
@@ -80,6 +79,8 @@ const charge_bearer_codes = [
   { "code": "SHA", "text": "Shared" }
 ];
 
+
+
 module.exports = async function () {
 
   const ext = await cds.connect.to('Swift_CAP_GPITracker');
@@ -92,7 +93,7 @@ module.exports = async function () {
       Payments = Paymentslistcache;
     }
     else {
-      if (filters !== undefined) {       
+      if (filters !== undefined) {
         const parsed = parseFilters(req, filters);
         try {
           Payments = await fetchPayments(ext, filters, parsed, req);
@@ -104,7 +105,7 @@ module.exports = async function () {
             try {
               ext = await cds.connect.to('Swift_CAP_GPITracker');
               Payments = await fetchPayments(ext, filters, parsed, req);
-              filterscache = filters;             
+              filterscache = filters;
             }
             catch (error) {
               var errormsg = "Error retrieving data";
@@ -149,9 +150,6 @@ module.exports = async function () {
 
   this.on('READ', 'BICValuehelp', async req => {
 
-    if (bankBICscache.length > 0) {
-      return bankBICscache;
-    }
     try {
       const response = await ext.send({
         method: 'GET',
@@ -162,7 +160,6 @@ module.exports = async function () {
       const bankBICs = response["x-bics"].flatMap(obj =>
         Object.entries(obj).map(([bic, name]) => ({ bic, name }))
       );
-      bankBICscache = bankBICs;
       return bankBICs;
 
     } catch (e) {
@@ -527,7 +524,7 @@ module.exports = async function () {
 
   async function fetchPaymentDetail(ext, req) {
 
-    let paymentevents, final_data, edges;
+    let final_data, edges;
     if (Paymentsdata?.uetr === req.data.uetr) {
       final_data = Paymentsdata;
       console.log("Fetching payment detail from cache");
@@ -799,5 +796,12 @@ module.exports = async function () {
   function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
+
+  this.on("refreshdata", () => {
+    Paymentsdata = null;
+    Paymentslistcache = [];
+    Paymentslistresponse = [];
+    filterscache = [];
+  });
 
 }

@@ -11,6 +11,8 @@ service MyService {
     amount   : String(19);
   }
 
+  action refreshdata() returns String;
+
   @Capabilities: {
     FilterRestrictions           : {
       FilterExpressionRestrictions: [
