@@ -133,7 +133,7 @@
           "options": {
             "settings": {
               "contextPath": "/Payments",
-              "variantManagement": "Page",
+              "variantManagement": "Control",
               "navigation": {
                 "Payments": {
                   "detail": {
@@ -356,6 +356,7 @@
           "name": "sap.fe.templates.ObjectPage",
           "options": {
             "settings": {
+              "variantManagement": "Control",
               "editableHeaderContent": false,
               "contextPath": "/Payments",
               "content": {
@@ -377,7 +378,13 @@
                   "tableSettings": {
                     "enableFullScreen": true,
                     "type": "GridTable",
-                    "condensedTableLayout": true
+                    "condensedTableLayout": true,
+                    "widthIncludingColumnHeader": true,
+                    "personalization": {
+                      "column": true,
+                      "filter": false,
+                      "sort": true
+                    }
                   }
                 }
               },
@@ -392,6 +399,9 @@
         "sap.ui.controllerExtensions": {
           "sap.fe.templates.ObjectPage.ObjectPageController": {
             "controllerName": "gpitrackerlr.ext.controller.Format"
+          },
+          "sap.fe.templates.ListReport.ListReportController": {
+            "controllerName": "gpitrackerlr.ext.controller.ListCustom"
           }
         }
       }

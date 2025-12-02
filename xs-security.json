@@ -1,21 +1,46 @@
 {
-  "xsappname": "swift_cap_gpitracker",
-  "tenant-mode": "dedicated",
-  "description": "Security profile of called application",
-  "scopes": [
-    {
-      "name": "uaa.user",
-      "description": "UAA"
-    }
-  ],
-  "role-templates": [
-    {
-      "name": "Token_Exchange",
-      "description": "UAA",
-      "scope-references": [
-        "uaa.user"
-      ]
-    }
-  ],
-  "attributes": []
+ "xsappname": "swift_cap_gpitracker",
+ "tenant-mode": "dedicated",
+ "description": "Security profile of called application",
+ "scopes": [
+  {
+   "name": "uaa.user",
+   "description": "UAA"
+  },
+  {
+   "name": "$XSAPPNAME.SwiftGPIAppUser",
+   "description": "SwiftGPIAppUser"
+  }
+ ],
+ "attributes": [
+  {
+   "name": "service_level",
+   "description": "service_level",
+   "valueType": "s"
+  },
+  {
+   "name": "bic",
+   "description": "bic",
+   "valueType": "s"
+  }
+ ],
+ "role-templates": [
+  {
+   "name": "SwiftGPIAppUser",
+   "description": "generated",
+   "default-role-name": "Swift GPI Application role",
+   "scope-references": [],
+   "attribute-references": [
+    "service_level",
+    "bic"
+   ]
+  },
+  {
+   "name": "Token_Exchange",
+   "description": "UAA",
+   "scope-references": [
+    "uaa.user"
+   ]
+  }
+ ]
 }

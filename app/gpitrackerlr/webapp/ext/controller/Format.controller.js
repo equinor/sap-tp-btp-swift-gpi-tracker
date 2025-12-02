@@ -10,20 +10,19 @@ sap.ui.define(['sap/ui/core/mvc/ControllerExtension'], function (ControllerExten
 			 * @memberOf gpitrackerlr.ext.controller.Format
 			 */
 			onInit: function () {
-				// you can access the Fiori elements extensionAPI via this.base.getExtensionAPI
-				//	var oModel = this.base.getExtensionAPI().getModel();
-			},
-			onAfterRendering: function () {
+				},
+			onBeforeRendering: function () {
 				this.oProcessFlow = this.base.getView().byId("gpitrackerlr::PaymentsObjectPage--fe::CustomSubSection::Payment_event_flow--_IDGenProcessFlow1");
 				this.oProcessFlow.optimizeLayout(true);
 				this.oProcessFlow.setZoomLevel(sap.suite.ui.commons.ProcessFlowZoomLevel.One);
-			},
+			}
+
 		},
 
 		formatMyField: function (val) {
-			return val;
+			this.oProcessFlow = this.base.getView().byId("gpitrackerlr::PaymentsObjectPage--fe::CustomSubSection::Payment_event_flow--_IDGenProcessFlow1");
+			this.oProcessFlow.updateModel();
+			return val;		
 		},
-
-
 	});
 });

@@ -14,8 +14,7 @@ sap.ui.define([
                     name: "gpitrackerlr.ext.fragment.Quickview",
                     type: "XML"
                 }).then(function(oFragment) {
-					this.oQuickView = oFragment;
-					
+					this.oQuickView = oFragment;				
 					this.oQuickView.bindElement(sPath);
 					this.oQuickView.openBy(oNode);
                     oView.addDependent(this.oQuickView);
